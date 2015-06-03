@@ -1,38 +1,8 @@
 <?xml version="1.0"?>
-<!-- $Id$ 
-     $Date$
-     $Revision$ -->
-<!--
-/**
- *  Latest information on this project can be found at http://www.rogue-development.com/spreadsheet/
- * 
- *  Copyright (c) 2008 Marc Hughes 
- * 
- *  Permission is hereby granted, free of charge, to any person obtaining a 
- *  copy of this software and associated documentation files (the "Software"), 
- *  to deal in the Software without restriction, including without limitation 
- *  the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- *  and/or sell copies of the Software, and to permit persons to whom the Software 
- *  is furnished to do so, subject to the following conditions:
- * 
- *  The above copyright notice and this permission notice shall be included in all 
- *  copies or substantial portions of the Software.
- * 
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
- *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
- *  PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
- *  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION 
- *  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
- *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
- *
- * Description:
- *    A datagrid like component focused on data input and extensibility.
- * 
- **/
- This provides one example usage of the Spreadsheet component.
--->
 
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" 
+<mx:VBox 
+	
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
 	xmlns:sp="com.roguedevelopment.spreadsheet.*" 	
 	xmlns:kapit="fr.kapit.*" 
     xmlns:components="fr.kapit.components.*" 
@@ -184,12 +154,10 @@
 			
 			diagram.deselectAll();			
         }
-       
-       
-  
-	/* Generate the PowerLoom string for the data in this model and 
-	   show it in a dialog box. */	
-	public function showModelPowerLoom(event:MouseEvent):void {
+     
+		/* Generate the PowerLoom string for the data in this model and 
+		   show it in a dialog box. */	
+		public function showModelPowerLoom(event:MouseEvent):void {
 			var d:TextDisplayDialog = new TextDisplayDialog();
 			d.title="PowerLoom Representation";
 			d.displayText=PLExporter.generateExperimentDataAssertion(model, true);
@@ -206,7 +174,7 @@
 				Application.application.eventDispatcher.
 						dispatchBioScholarEvent(KefedAppEvent.SAVE_DATA_EDIT, model);
 				currentState = "";
-				Application.application.currentState = "Dashboard_State";
+				//Application.application.currentState = "Dashboard_State";
 			}
 		}
 
@@ -215,10 +183,9 @@
 				Application.application.eventDispatcher.
 						dispatchBioScholarEvent(KefedAppEvent.CANCEL_DATA_EDIT);
 				currentState = "";
-				Application.application.currentState = "Dashboard_State";
+				//Application.application.currentState = "Dashboard_State";
 			}
 		}
-		
 		
 		/** Lookup the element UID for the list, and if found, then select the 
 		 *  element in the grid and go to the new state and return true.
@@ -327,7 +294,15 @@
 			deselectNonMatchingList(grid, indepVbGrid);
 			deselectNonMatchingList(grid, cntrlVbGrid);
 			
-			if (grid.selectedIndex >= 0) {          
+			if (grid.selectedIndex >= 0) { 
+				
+				// We may need to instantiate the depVbData grid
+				// by prematurely switching state to display it.
+				// This causes problems if we make this switch 
+				// prematurely in other situations. 
+				if( depVbData == null )
+					currentState = newState;
+				
 				activeVb = variables[grid.selectedIndex];
 				if (activeVb.isMeasurement()) {
 					buildMeasurementVariableDataGrid(activeVb, depVbData);
@@ -338,12 +313,15 @@
 				} else {
 					variableType = activeVb.valueType;
 				}
+		
 				currentState = newState;
+			
 			} else {
 				activeVb = null;
 				currentState = "";
 			}
-		}
+		
+		 }
 		
 		private function selectListElement(event:Event):void {
 			var list:List = event.currentTarget as List;
@@ -376,7 +354,14 @@
         	// Now handle the Dependent variable structure as well.
         	createVariableDataRenderer(depV, cols);
  			
+			// Hack to try to prevent the old columns from being validated. 
+			for(var i:int=0; i<depVbData.columns.length; i++) {
+				var oldCol:DataGridColumn = depVbData.columns[i];
+				oldCol.visible = false;
+			}
+			
 			depVbData.columns = cols;
+			depVbData.invalidateProperties();
         }
         
         /** Create a variable data renderer of the appropriate type and
@@ -595,7 +580,7 @@
          private function switchToSpreadsheet(): void {
         	if( this.activeVb.isMeasurement()) { 	
 	        	this.spreadsheet.text = this.buildDependentVariableSpreadSheet(activeVb);
-	        	currentState = "Spreadsheet_State";
+				currentState = "Spreadsheet_State";
 	        }      	
         }
         
@@ -790,7 +775,7 @@
 			<mx:RemoveChild target="{activeObjectForm}"/>
 			<mx:AddChild relativeTo="{dataGrid}" creationPolicy="all">
 				<mx:VBox height="100%" width="100%">
-					<mx:Text text="{activeVb.nameValue}" fontSize="14" fontStyle="bold"/>
+					<mx:Text text="{activeVb.nameValue}" fontSize="14" />
 					<!-- Need to turn off sorting, because it doesn't work correctly when a
 					     complex dotted sort field form is used in the DataGrid. 
 					     TODO: Investigate whether AdvancedDataGrid solves this problem, or
@@ -804,7 +789,9 @@
 								horizontalScrollPolicy="{ScrollPolicy.ON}"
 								variableRowHeight="true"
 								headerStyleName="leftBold"
-								/>		<!-- itemEditEnd="handleEndEditEvent(event)" -->
+							 itemRenderer="edu.isi.bmkeg.kefed.ui.DependentVbDataGridRenderer"
+								/>		
+					<!-- itemEditEnd="handleEndEditEvent(event)" -->
 					<mx:HBox width="100%">
 						<mx:Button label="Add Row" 
 								click="handleAddRowEditDependentVariableData()"/>
@@ -857,6 +844,7 @@
 				<diagview:DiagramView width="100%" height="100%" id="diagram" creationComplete="initDiagram();"/>
 			</mx:HBox>
 		</mx:Panel>
+		
 		<mx:VBox height="100%" width="100%">
 			<mx:HBox width="100%">
 				<!-- <mx:Label text="Design:" fontSize="12"/> -->
@@ -924,26 +912,20 @@
 				</mx:HBox> 	
 				
 				<mx:VBox id="dataGrid" label="Data" width="100%" height="100%">
-				<mx:VBox id="activeObjectForm" label="CurrentObject" width="100%" height="20%">
-				<mx:Form id="modelInfo" label="Model" height="40%" width="100%">
-		 	    	<mx:FormHeading label="Experiment Info"/>
-					<mx:FormItem label="Description" direction="horizontal" width="100%">
-						<mx:TextArea id="descriptionField" height="120" width="100%"
-							text="{model.description}" valueCommit="{model.description = descriptionField.text}"/>
-					</mx:FormItem>
-					<mx:FormItem label="Date/Time" direction="horizontal" width="100%">
-						<mx:Text text="{model.dateTime}" width="100%"/> 
-					</mx:FormItem>
-				</mx:Form>
+					<mx:VBox id="activeObjectForm" label="CurrentObject" width="100%" height="20%">
+						<mx:Form id="modelInfo" label="Model" height="40%" width="100%">
+		 	    			<mx:FormHeading label="Experiment Info"/>
+							<mx:FormItem label="Description" direction="horizontal" width="100%">
+								<mx:TextArea id="descriptionField" height="120" width="100%"
+									text="{model.description}" 
+									valueCommit="{model.description = descriptionField.text}"/>
+							</mx:FormItem>
+							<mx:FormItem label="Date/Time" direction="horizontal" width="100%">
+								<mx:Text text="{model.dateTime}" width="100%"/> 
+							</mx:FormItem>
+						</mx:Form>
+					</mx:VBox>
 				</mx:VBox>
-				</mx:VBox>
-				<!--<sp:SpreadSheet id="sheet" 
-			    		width="100%" 
-			    		height="100%" 
-			    		borderStyle="solid" 
-						backgroundColor="#ffffff"
-						backgroundAlpha="1"/>-->
-			
 			</mx:VDividedBox> 
 		</mx:VBox>
 	</mx:HDividedBox> 	

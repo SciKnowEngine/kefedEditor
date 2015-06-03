@@ -1,8 +1,3 @@
-// $Id$
-//
-//  $Date$
-//  $Revision$
-//
 package edu.isi.bmkeg.kefed.ui
 {
 	import edu.isi.bmkeg.kefed.elements.KefedBaseValueTemplate;

@@ -27,7 +27,7 @@
     	import mx.utils.StringUtil;
     	import edu.isi.bmkeg.kefed.store.ModelStoreEvent;
     	import edu.isi.bmkeg.kefed.store.IDataStore;
-    	import edu.isi.bmkeg.kefed.store.persevere.PersevereModelStore;
+    	import edu.isi.bmkeg.kefed.store.elasticSearch.ElasticSearchModelStore;
     	import edu.isi.bmkeg.kefed.store.IModelStore;
         import com.kapit.diagram.DiagramEvent;
 		import com.kapit.diagram.layouts.utils.Constants;            
@@ -429,11 +429,9 @@
 						width="184" 
 						height="28" 
 						groupid="Basic"  
-						cornerRadius="0" 
 						paddingLeft="8" 
 						paddingBottom="3" 
 						paddingTop="3" 
-						backgroundColor="{ColorUtil.adjustBrightness2(flatPanel.getStyle('borderColor'),-50)}"
 						useHandCursor="true" />
 				<mx:Label text="Zoom: "/>
 				<kutil:DiagramZoomHSlider id="zoomControl"

@@ -40,9 +40,9 @@
 			import edu.isi.bmkeg.kefed.store.IModelStore;
 			import edu.isi.bmkeg.kefed.store.ModelStoreEvent;
 			import edu.isi.bmkeg.kefed.store.json.YogoSerializer;
-			import edu.isi.bmkeg.kefed.store.persevere.PersevereDataStore;
-			import edu.isi.bmkeg.kefed.store.persevere.PersevereModelStore;
-			import edu.isi.bmkeg.kefed.store.persevere.YogoModelStore;
+			import edu.isi.bmkeg.kefed.store.elasticSearch.ElasticSearchDataStore;
+			import edu.isi.bmkeg.kefed.store.elasticSearch.ElasticSearchModelStore;
+			import edu.isi.bmkeg.kefed.store.elasticSearch.YogoModelStore;
 			import edu.isi.bmkeg.kefed.ui.ConfirmDeleteDialog;
 			import edu.isi.bmkeg.kefed.ui.NewKefedTemplateDialog;
 
@@ -112,7 +112,7 @@
 				zoom = Number(config.getValue("zoom", "1"));
 				
 				modelStoreUrl = URLUtil.getFullURL(serverUrl, modelStoreUrl);
-				modelStore = new PersevereModelStore(modelStoreUrl);
+				modelStore = new ElasticSearchModelStore(modelStoreUrl);
 				modelStore.addEventListener(ModelStoreEvent.RETRIEVE, handleModelLoad);
 				modelStore.addEventListener(ModelStoreEvent.INSERT, handleModelInsert);
 				modelStore.addEventListener(ModelStoreEvent.SAVE, handleModelSave);
@@ -129,7 +129,7 @@
 
 				
 				dataStoreUrl = URLUtil.getFullURL(serverUrl, dataStoreUrl);
-				dataStore = new PersevereDataStore(dataStoreUrl);
+				dataStore = new ElasticSearchDataStore(dataStoreUrl);
 				
 				if(eventDispatcher != null ) {
 					eventDispatcher.addEventListener(KefedAppEvent.SAVE_DESIGN_EDIT, saveEditedModel);

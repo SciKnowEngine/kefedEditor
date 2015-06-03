@@ -20,9 +20,9 @@
 			import edu.isi.bmkeg.kefed.ui.UiUtil;
 			import mx.managers.IBrowserManager;
 			import mx.managers.BrowserManager;
-			import edu.isi.bmkeg.kefed.store.persevere.PersevereDataStore;
+			import edu.isi.bmkeg.kefed.store.elasticSearch.ElasticSearchDataStore;
 			import edu.isi.bmkeg.kefed.store.persevere.YogoModelStore;
-			import edu.isi.bmkeg.kefed.store.persevere.PersevereModelStore;
+			import edu.isi.bmkeg.kefed.store.elasticSearch.ElasticSearchModelStore;
 			import edu.isi.bmkeg.kefed.store.IDataStore;
 			import edu.isi.bmkeg.kefed.store.IModelStore;
 			import mx.collections.ArrayCollection;
@@ -65,11 +65,12 @@
 			public var lib:SVGAssetLibrary;
 			
 			private var version:String = "$Revision$";
-			private var nbco:NCBOBioPortalInterface = new NCBOBioPortalInterface(); 
+			//private var nbco:NCBOBioPortalInterface = new NCBOBioPortalInterface(); 
 			public var ontologyList:ArrayCollection = new ArrayCollection();
 			public var selectedOntologies:Array = new Array();
 
 			private function init():void {
+				
 				UiUtil.agreeToLicense(license.key, license.license);
 				if (serverUrl==null) {
 					serverUrl = URLUtil.getProtocol(this.url) + "://"
@@ -85,23 +86,24 @@
 				var dataStoreUrl:String = config.getValue("dataStoreUrl", "persevere/KefedModel");
 				
 				modelStoreUrl = URLUtil.getFullURL(serverUrl, modelStoreUrl);
-				modelStore = new PersevereModelStore(modelStoreUrl);
-				jsonFormModelStore = new PersevereModelStore(modelStoreUrl);
+				modelStore = new ElasticSearchModelStore(modelStoreUrl);
+				jsonFormModelStore = new ElasticSearchModelStore(modelStoreUrl);
 				if (schemaStoreUrl != null) {
 					schemaStoreUrl = URLUtil.getFullURL(serverUrl, schemaStoreUrl);
 					schemaStore = new YogoModelStore(schemaStoreUrl);
 				}
 				dataStoreUrl = URLUtil.getFullURL(serverUrl, dataStoreUrl);
-				dataStore = new PersevereDataStore(dataStoreUrl);
-				jsonFormDataStore = new PersevereDataStore(dataStoreUrl);
+				dataStore = new ElasticSearchDataStore(dataStoreUrl);
+				jsonFormDataStore = new ElasticSearchDataStore(dataStoreUrl);
 
 				//  Setup up webservice for NCBO ontology lookup
-				nbco.addEventListener(OntologySearchEvent.LIST_ONTOLOGIES, ncboListOntologiesEventHandler);
-				nbco.addEventListener(FaultEvent.FAULT, FaultEventHandler);					
-				nbco.ncboListOntologies();
+				//nbco.addEventListener(OntologySearchEvent.LIST_ONTOLOGIES, ncboListOntologiesEventHandler);
+				//nbco.addEventListener(FaultEvent.FAULT, FaultEventHandler);					
+				//nbco.ncboListOntologies();
 				
 				currentState = "Dashboard_State";
 				Application.application.setFocus();
+				
 			}
 			
 			private function ncboListOntologiesEventHandler(event:OntologySearchEvent):void {			
@@ -187,7 +189,7 @@
 
 	</mx:states>
 
-	<mx:VBox id="top" height="100%" width="100%">
+	<mx:VBox id="top" height="0%" width="100%">
   	  <kefedUI:CreditBox id="information" height="100%" width="100%"
 	   	  	 componentName="BioScholar"/>
 	</mx:VBox>

@@ -13,6 +13,7 @@ package edu.isi.bmkeg.kefed.store.persevere
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.rpc.http.HTTPService;
+	import edu.isi.bmkeg.kefed.store.elasticSearch.ElasticSearchStoreUtil;
 
 	/** Model store that saves KefedModel to an underlying Persevere
 	 *  object store.  This serializes the model to a generic object

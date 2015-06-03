@@ -20,9 +20,8 @@
 			import edu.isi.bmkeg.kefed.ui.UiUtil;
 			import mx.managers.IBrowserManager;
 			import mx.managers.BrowserManager;
-			import edu.isi.bmkeg.kefed.store.persevere.PersevereDataStore;
-			import edu.isi.bmkeg.kefed.store.persevere.YogoModelStore;
-			import edu.isi.bmkeg.kefed.store.persevere.PersevereModelStore;
+			import edu.isi.bmkeg.kefed.store.elasticSearch.ElasticSearchDataStore;
+			import edu.isi.bmkeg.kefed.store.elasticSearch.ElasticSearchModelStore;
 			import edu.isi.bmkeg.kefed.store.IDataStore;
 			import edu.isi.bmkeg.kefed.store.IModelStore;
 			import mx.collections.ArrayCollection;
@@ -82,13 +81,13 @@
 				var dataStoreUrl:String = config.getValue("dataStoreUrl", "persevere/KefedModel");
 				
 				modelStoreUrl = URLUtil.getFullURL(serverUrl, modelStoreUrl);
-				modelStore = new PersevereModelStore(modelStoreUrl);			
-				if (schemaStoreUrl != null) {
+				modelStore = new ElasticSearchModelStore(modelStoreUrl);			
+				/*if (schemaStoreUrl != null) {
 					schemaStoreUrl = URLUtil.getFullURL(serverUrl, schemaStoreUrl);
 					schemaStore = new YogoModelStore(schemaStoreUrl);
-				}
+				}*/
 				dataStoreUrl = URLUtil.getFullURL(serverUrl, dataStoreUrl);
-				dataStore = new PersevereDataStore(dataStoreUrl);
+				dataStore = new ElasticSearchDataStore(dataStoreUrl);
 
 				//  Setup up webservice for NCBO ontology lookup
 				nbco.addEventListener(OntologySearchEvent.LIST_ONTOLOGIES, ncboListOntologiesEventHandler);

@@ -3,12 +3,12 @@
      $Date$
      $Revision$  xmlns="http://www.isi.edu/bmkeg/"-->
 <configuration>
-  <modelStoreType>persevere</modelStoreType>
-  <modelStoreUrl>persevere/KefedModel</modelStoreUrl>
 
-  <dataStoreType>persevere</dataStoreType>
-  <dataStoreUrl>persevere/KefedModel</dataStoreUrl>
+  <modelStoreType>elasticSearch</modelStoreType>
+  <modelStoreUrl>http://localhost:9200/kefed/model</modelStoreUrl>
 
+  <dataStoreType>elasticSearch</dataStoreType>
+  <dataStoreUrl>http://localhost:9200/kefed/data</dataStoreUrl>
 
   <!--
   <schemaStoreType>persevere</schemaStoreType>

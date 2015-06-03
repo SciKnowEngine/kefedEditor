@@ -170,7 +170,7 @@
 							<mx:CheckBox id="propControl" label="Include properties?"/>
 						</mx:HBox>
 						
-						<mx:TextArea id="ontologyListLabel" width="100%" borderThickness="0"/>
+						<mx:TextArea id="ontologyListLabel" width="100%" />
 										
 			</mx:VBox>
 			
@@ -191,7 +191,7 @@
 		
 			<mx:HBox width="100%" 					
 				paddingLeft="10" paddingBottom="10" paddingRight="10" paddingTop="10">
-				<mx:TextArea id="termListLabel" width="100%" borderThickness="0"/>
+				<mx:TextArea id="termListLabel" width="100%" />
 				<mx:HBox>
 					<mx:Button label="Set" click="processData(OntologySearchEvent.SET_ONTOLOGY_IDS);"/>
 					<mx:Button label="Add" click="processData(OntologySearchEvent.ADD_ONTOLOGY_IDS);"/>

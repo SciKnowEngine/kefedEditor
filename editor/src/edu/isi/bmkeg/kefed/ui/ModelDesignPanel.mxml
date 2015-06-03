@@ -9,13 +9,13 @@
 	
 	 <mx:Script>
 	<![CDATA[
-		import edu.isi.bmkeg.kefed.store.persevere.YogoModelStore;
+		import edu.isi.bmkeg.kefed.store.elasticSearch.YogoModelStore;
 		import edu.isi.bmkeg.kefed.store.json.YogoSerializer;
 		import mx.events.CloseEvent;
 		
     	import edu.isi.bmkeg.kefed.store.IModelStore;
     	import edu.isi.bmkeg.kefed.store.ModelStoreEvent;
-    	import edu.isi.bmkeg.kefed.store.persevere.PersevereModelStore;
+    	import edu.isi.bmkeg.kefed.store.elasticSearch.ElasticSearchModelStore;
     	
     	import flare.vis.operator.layout.IndentedTreeLayout;
 

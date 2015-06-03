@@ -29,7 +29,7 @@ package edu.isi.bmkeg.kefed.ontology.bioportal
 		/** API key for NCBO restful web services calls
 		 */
 		[Bindable]
-		public var apikey:String = "af39dd48-ba3e-43a0-bf72-461030d945d8";
+		public var apikey:String = "8e4388aa-d14b-49c2-99e5-138598411258";
 
 		private var baseUrl:String;
 		private var ncboSearchService:HTTPService;
@@ -159,7 +159,7 @@ package edu.isi.bmkeg.kefed.ontology.bioportal
 		}
 
 		/**
-		 * http://rest.bioontology.org/bioportal/ontologies?email=example@example.org
+		 * http://data.bioontology.org/ontologies?apikey=8e4388aa-d14b-49c2-99e5-138598411258
 		 * ___________________________________________________________
 		 * 
 		 * NCBO's list of active ontologies
@@ -170,12 +170,12 @@ package edu.isi.bmkeg.kefed.ontology.bioportal
 
 		 	ncboListOntologiesService = new HTTPService();
 		 	ncboListOntologiesService.useProxy = true;
-			ncboListOntologiesService.destination = "DefaultHTTP";
-		 	ncboListOntologiesService.resultFormat = "text";
 			ncboListOntologiesService.contentType = "application/javascript";
+			ncboListOntologiesService.destination = "DefaultHTTP";
 			ncboListOntologiesService.method = "GET";
-		 	ncboListOntologiesService.url = "http://rest.bioontology.org/bioportal/" + 
-		 			"ontologies?apikey=" + apikey; 	 	
+		 	ncboListOntologiesService.url = "http://data.bioontology.org/ontologies" + 
+		 			"?apikey=" + apikey; 	 	
+			
 			
 			ncboListOntologiesService.addEventListener(ResultEvent.RESULT, 
 					ncboListOntologiesEventHandler);

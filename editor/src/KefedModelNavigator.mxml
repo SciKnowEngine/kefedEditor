@@ -23,7 +23,7 @@
 			import mx.rpc.events.FaultEvent;
 
 			import edu.isi.bmkeg.kefed.ui.kapit.DiagramMappings;
-			import edu.isi.bmkeg.kefed.store.persevere.PersevereModelStore;
+			import edu.isi.bmkeg.kefed.store.elasticSearch.ElasticSearchModelStore;
 			import edu.isi.bmkeg.kefed.store.ModelStoreEvent;
 			import edu.isi.bmkeg.kefed.elements.KefedModel;
 			import edu.isi.bmkeg.kefed.store.IModelStore;
@@ -64,7 +64,7 @@
 				
 				var modelStoreUrl:String = config.getValue("modelStoreUrl", "persevere/KefedModel");
 				modelStoreUrl = URLUtil.getFullURL(serverUrl, modelStoreUrl);
-				modelStore = new PersevereModelStore(modelStoreUrl);
+				modelStore = new ElasticSearchModelStore(modelStoreUrl);
 				modelStore.addEventListener(ModelStoreEvent.RETRIEVE, handleModelLoad);
 				modelStore.addEventListener(FaultEvent.FAULT, handleModelStoreFault);
 			}

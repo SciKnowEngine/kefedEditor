@@ -141,7 +141,6 @@
 	    version-major="${flash.version.major}" 
             version-minor="${flash.version.minor}"
 	    version-revision="${flash.version.revision}" 
-            template="express-installation" 
             output="${BUILD_DIR}/${CONTEXT_ROOT}/${CONTEXT}" />
     </target>
 

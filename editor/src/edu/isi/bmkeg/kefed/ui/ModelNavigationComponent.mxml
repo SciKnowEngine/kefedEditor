@@ -17,7 +17,7 @@
     	import mx.utils.StringUtil;
     	import edu.isi.bmkeg.kefed.store.ModelStoreEvent;
     	import edu.isi.bmkeg.kefed.store.IDataStore;
-    	import edu.isi.bmkeg.kefed.store.persevere.PersevereModelStore;
+    	import edu.isi.bmkeg.kefed.store.elasticSearch.ElasticSearchModelStore;
     	import edu.isi.bmkeg.kefed.store.IModelStore;
         import com.kapit.diagram.DiagramEvent;
 		import com.kapit.diagram.layouts.utils.Constants;            

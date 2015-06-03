@@ -16,14 +16,15 @@ package edu.isi.bmkeg.kefed.ui
      *  @param data Object to be rendered.
      *  @return Displayable String based on the data.
      */
+		
+		
     override public function itemToDataTip(data:Object):String  {
     	if ( !hasComplexFieldName ) 
             data = data[dataField];
         else 
             data = deriveComplexColumnData( data );
     	return super.itemToDataTip(data);
-      }
-
-		
+      }		
 	}
+	
 }

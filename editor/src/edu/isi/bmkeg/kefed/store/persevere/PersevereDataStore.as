@@ -14,6 +14,7 @@ package edu.isi.bmkeg.kefed.store.persevere
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.rpc.http.HTTPService;
+	import edu.isi.bmkeg.kefed.store.elasticSearch.PersevereStoreUtil;
 
 	/** Data store that saves KefedExperiment to an underlying Persevere
 	 *  object store.  This serializes the Experiment to a generic object
@@ -57,11 +58,11 @@ package edu.isi.bmkeg.kefed.store.persevere
 			}
 			this.serviceUrl = url;
 			
-			listService = PersevereStoreUtil.initService("GET", listResultEventHandler, faultEventHandler);
-			retrieveService = PersevereStoreUtil.initService("GET", loadResultEventHandler, faultEventHandler);
-			insertService = PersevereStoreUtil.initService("POST", insertResultEventHandler, faultEventHandler);
-			saveService = PersevereStoreUtil.initService("PUT", saveResultEventHandler, faultEventHandler);
-			deleteService = PersevereStoreUtil.initService("DELETE", deleteResultEventHandler, faultEventHandler);
+			listService = ElasticSearchStoreUtil.initService("GET", listResultEventHandler, faultEventHandler);
+			retrieveService = ElasticSearchStoreUtil.initService("GET", loadResultEventHandler, faultEventHandler);
+			insertService = ElasticSearchStoreUtil.initService("POST", insertResultEventHandler, faultEventHandler);
+			saveService = ElasticSearchStoreUtil.initService("PUT", saveResultEventHandler, faultEventHandler);
+			deleteService = ElasticSearchStoreUtil.initService("DELETE", deleteResultEventHandler, faultEventHandler);
 			// copyService = PersevereStoreUtil.initService("GET", copyResultEventHandler, faultEventHandler);
 		}
 

@@ -57,13 +57,17 @@ package edu.isi.bmkeg.kefed.ui {
 	        var name:String = StringUtil.trim(edit.text);        	
 	        var uid:String = myObject.uid;        	
 	      
-	      	// Update displayed diagram name for this object      
-	        var dob:DiagramObject = DiagramObject(diagram.getElementByDataObjectId(uid));
-	        if (dob.annotation)
-	           	dob.annotation.text = name;
-	         else
-	           	diagram.createAnnotation(dob, name);
-	         myObject.nameValue = name;
+	      	// Update displayed diagram name for this object  
+			//
+			// TODO why is this returning null for the diagram?
+			if( diagram != null ) {
+		        var dob:DiagramObject = DiagramObject(diagram.getElementByDataObjectId(uid));
+	    	    if (dob.annotation)
+	       	    	dob.annotation.text = name;
+		       	else
+	        	   	diagram.createAnnotation(dob, name);
+			}
+	        myObject.nameValue = name;
 	    }
 
 	}

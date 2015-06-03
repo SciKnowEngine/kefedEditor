@@ -15,15 +15,14 @@
 		import edu.isi.bmkeg.kefed.ui.NewKefedExperimentDialog;
 		import edu.isi.bmkeg.kefed.ui.NewKefedTemplateDialog;
 		import edu.isi.bmkeg.kefed.ui.ConfirmDeleteDialog;
-		import edu.isi.bmkeg.kefed.store.persevere.YogoModelStore;
 		import edu.isi.bmkeg.kefed.store.json.YogoSerializer;
 		import mx.events.CloseEvent;
 		
     	import edu.isi.bmkeg.kefed.store.IModelStore;
     	import edu.isi.bmkeg.kefed.store.ModelStoreEvent;
-    	import edu.isi.bmkeg.kefed.store.persevere.PersevereModelStore;
+    	import edu.isi.bmkeg.kefed.store.elasticSearch.ElasticSearchModelStore;
  		import edu.isi.bmkeg.kefed.store.DataStoreEvent;
-		import edu.isi.bmkeg.kefed.store.persevere.PersevereDataStore;
+		import edu.isi.bmkeg.kefed.store.elasticSearch.ElasticSearchDataStore;
 		import edu.isi.bmkeg.kefed.store.IDataStore;
    	
     	import flare.vis.operator.layout.IndentedTreeLayout;
@@ -548,7 +547,7 @@
 							itemRenderer="edu.isi.bmkeg.utils.CheckBoxDataGrid.CheckBoxRenderer" 
 							allowMultipleSelection="true" change="updateSelectedList()" />
 	
-			<mx:TextArea id="selectedOntologiesLabel" text="All" editable="false" borderThickness="0"/>
+			<mx:TextArea id="selectedOntologiesLabel" text="All" editable="false" />
 		</mx:VBox>
 		
 	</mx:Panel>	
