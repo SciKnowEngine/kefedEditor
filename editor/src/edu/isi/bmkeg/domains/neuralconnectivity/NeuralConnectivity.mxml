@@ -25,7 +25,7 @@
 			import mx.rpc.events.ResultEvent;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.http.HTTPService;
-			import edu.isi.bmkeg.utils.powerloom.PL;
+			import edu.isi.bmkeg.kefed.editor.utils.powerloom.PL;
 			
 			namespace plsoap = "http://www.isi.edu/powerloom/";
 			private var pdfURLhead:String = Application.application.serverUrl + "ploom/kefed/pdf/";

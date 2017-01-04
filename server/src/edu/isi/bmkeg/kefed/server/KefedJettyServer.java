@@ -76,8 +76,8 @@ public class KefedJettyServer implements LifeCycle.Listener {
   /** Create a new KefedJettyServer to run web applications
    *
    * @param name The name for this application.  Used as title.
-   * @param urlpath The path to the first URL to launch for the application
-   * @param urlpath The path to the second URL to launch for the application (may be null)
+   * @param urlpath1 The path to the first URL to launch for the application
+   * @param urlpath2 The path to the second URL to launch for the application (may be null)
    */
   public KefedJettyServer (String name, String urlpath1, String urlpath2) {
     this.name = name;

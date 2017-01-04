@@ -2,19 +2,15 @@
 <!-- $Id$ 
      $Date$
      $Revision$ -->
-<mx:HDividedBox xmlns:mx="http://www.adobe.com/2006/mxml"  
+<mx:HDividedBox xmlns:mx="http://www.adobe.com/2006/mxml" 
 	xmlns:CheckBoxDataGrid="edu.isi.bmkeg.kefed.editor.utils.CheckBoxDataGrid.*"
-	xmlns:connectivity="edu.isi.bmkeg.domains.neuralconnectivity.*"
-	xmlns:ui="edu.isi.bmkeg.kefed.editor.ui.*"
 	width="100%" height="100%"
 	preinitialize="init();"
-	creationComplete="refresh()">
-	
-  <mx:Script>
+	creationComplete="refresh()" xmlns:ui="edu.isi.bmkeg.kefed.editor.ui.*">
+
+    <mx:Script>
 	<![CDATA[
-		import edu.isi.bmkeg.kefed.editor.ui.NewKefedExperimentDialog;
-		import edu.isi.bmkeg.kefed.editor.ui.NewKefedTemplateDialog;
-		import edu.isi.bmkeg.kefed.editor.ui.ConfirmDeleteDialog;
+		import edu.isi.bmkeg.kefed.editor.store.persevere.YogoModelStore;
 		import edu.isi.bmkeg.kefed.editor.store.json.YogoSerializer;
 		import mx.events.CloseEvent;
 		
@@ -67,14 +63,6 @@
 		
 		[Bindable]
 		private var experiment:KefedExperiment;
-		
-		[Bindable]
-		public var deleteAllowed:Boolean = true;
-		[Bindable]
-		public var createAllowed:Boolean = true;
-		[Bindable]
-		public var editAllowed:Boolean = true;
-
 
 		private var deletePopup:ConfirmDeleteDialog;
 		// TODO:  Unify naming.  This is a bit incoherent at the moment because
@@ -96,10 +84,10 @@
     		
     		modelStore.addEventListener(ModelStoreEvent.LIST, handleListKefedTemplates);
     		modelStore.addEventListener(ModelStoreEvent.RETRIEVE, handleLoadKefedTemplate);
-    		modelStore.addEventListener(ModelStoreEvent.DELETE, handleDeleteKefedTemplate);
+     		modelStore.addEventListener(ModelStoreEvent.DELETE, handleDeleteKefedTemplate);
     		modelStore.addEventListener(ModelStoreEvent.INSERT, handleInsertKefedTemplate);
-    		modelStore.addEventListener(ModelStoreEvent.SAVE, handleSaveKefedTemplate);
-    		modelStore.addEventListener(FaultEvent.FAULT, callError);
+ 			modelStore.addEventListener(ModelStoreEvent.SAVE, handleSaveKefedTemplate);
+     		modelStore.addEventListener(FaultEvent.FAULT, callError);
 
     		dataStore.addEventListener(DataStoreEvent.LIST, handleListKefedExperimentss);
     		dataStore.addEventListener(DataStoreEvent.RETRIEVE, handleLoadKefedModel);
@@ -124,6 +112,8 @@
 				Application.application.currentState = "Dashboard_State";
 			} else if (e.charCode == 10) { // Control-J
 				Application.application.currentState = "JSONform";
+			} else if (e.charCode == 14 ) { // Control-N
+				Application.application.currentState = "Connectivity_State";
 			} else if (e.charCode == 16 ) { // Control-P
 				Application.application.currentState = "PowerLoomForm";
 			}
@@ -149,12 +139,10 @@
     	 * @param evt The event
     	 */
     	private function handleTemplateChange (evt:Event):void {
-    		if (templateGrid) {
-	    		var enable:Boolean = (templateGrid.selectedIndex != -1);
-	    		copyDesignButton.enabled = createAllowed && enable;
-	    		editDesignButton.enabled = editAllowed && enable;
-	    		deleteDesignButton.enabled = deleteAllowed && enable;
-    		}	
+    		var enable:Boolean = (templateGrid.selectedIndex != -1);
+    		copyDesignButton.enabled = enable;
+    		editDesignButton.enabled = enable;
+    		deleteDesignButton.enabled = enable;    		
     	}
 
    		/** Respond to changes in the model/data selection window by
@@ -164,12 +152,12 @@
     	 * @param evt The event
     	 */
     	private function handleExperimentChange (evt:Event):void {
-    		if (experimentGrid) {
+    		if (experimentGrid != null) {
 	    		var enable:Boolean = (experimentGrid.selectedIndex != -1);
-	    		copyExperimentButton.enabled = createAllowed && enable;
-	    		editExperimentButton.enabled = editAllowed && enable;
-	    		deleteExperimentButton.enabled = deleteAllowed && enable;
-	    	}		
+	    		copyExperimentButton.enabled = enable;
+	    		editExperimentButton.enabled = enable;
+	    		deleteExperimentButton.enabled = enable;
+    		}
     	}
 
 		
@@ -191,6 +179,7 @@
 				model.type = "template";
 				model.modelName = newDesignPopup.Name.text;
 				model.source = newDesignPopup.Source.text;
+				model.citeKey = newDesignPopup.Citation.text;
 				model.description = newDesignPopup.Description.text;
 				model.updateTime();
 				modelStore.insertModel(model);
@@ -367,6 +356,7 @@
 			exp.id = null;
 			exp.modelName = newExperimentPopup.Name.text;
 			exp.source = newExperimentPopup.Source.text;
+			exp.citeKey = newExperimentPopup.Citation.text;
 			exp.designUid = e.model.uid;
 //			exp.reference = newExperimentPopup.Reference.text;
 //			exp.caseId = newExperimentPopup.CaseId;
@@ -403,6 +393,7 @@
 			var i:int = experimentGrid.selectedIndex;
 			var o:Object = experimentList[i];
 			var uid:String = o.uid;
+			cursorManager.setBusyCursor();
 			dataStore.deleteData(uid);
 			PopUpManager.removePopUp(deletePopup);
 		}
@@ -412,6 +403,7 @@
 		}
 
 		private function handleDeleteKefedExperiment(e:DataStoreEvent):void {
+			cursorManager.removeBusyCursor();
 			refresh();
 		}
 
@@ -468,9 +460,9 @@
 			// So we make sure that we really have a 
 			// selected item before we actually try to get it.  - tar
 			if (i > -1) {
+				cursorManager.setBusyCursor();
 				var o:Object = experimentList[i];
 				var uid:String = o.uid;
-				CursorManager.setBusyCursor();
 				dataStore.retrieveData(uid);
 			}
 		}
@@ -547,16 +539,19 @@
 							itemRenderer="edu.isi.bmkeg.kefed.editor.utils.CheckBoxDataGrid.CheckBoxRenderer" 
 							allowMultipleSelection="true" change="updateSelectedList()" />
 	
-			<mx:TextArea id="selectedOntologiesLabel" text="All" editable="false" />
+			<mx:TextArea id="selectedOntologiesLabel" text="All" editable="false"/>
+				
 		</mx:VBox>
 		
 	</mx:Panel>	
 
 	<mx:Accordion height="100%" width="100%">
-		<mx:Panel label="About BioScholar" height="100%" width="100%">
-		  <ui:CreditBox componentName="Neural Connectivity Application"/>
-		</mx:Panel>
-		
+
+	    <!-- Future expansion, when interactions between panels are worked out.
+	    		<ui:ModelDesignPanel label="Experimental Designs" id="modelPanel" width="100%" height="100%"
+ 			modelStore="{modelStore}" schemaStore="{schemaStore}"
+ 			deleteAllowed="{deleteAllowed}" createAllowed="{createAllowed}" editAllowed="{editAllowed}"/>
+          -->
 		<mx:Panel label="Experimental Designs" width="100%" height="100%">
 						
 			<mx:DataGrid id="templateGrid" 
@@ -577,7 +572,7 @@
 	
 		    <mx:ControlBar width="100%">
 	            <mx:Spacer width="100%"/>
-	            <mx:Button id="newDesignButton" label="New Design" click="newTemplate();" enabled="{createAllowed}"/>
+	            <mx:Button id="newDesignButton" label="New Design" click="newTemplate();"/>
 	            <mx:Button id="copyDesignButton" label="Copy Design" click="copyTemplate();" enabled="false"/>
 	            <mx:Button id="editDesignButton" label="Edit Design" click="editTemplate();" enabled="false"/>
 	            <mx:Button id="deleteDesignButton" label="Delete Design" click="deleteTemplate();" enabled="false"/>
@@ -585,7 +580,7 @@
 	
 		</mx:Panel>
 		
-		<mx:Panel label="Observations" width="100%" height="100%">
+		<mx:Panel label="Experiments" width="100%" height="100%">
 			
 			<mx:DataGrid id="experimentGrid" 
 							dataProvider="{experimentList}" 
@@ -606,18 +601,16 @@
 	
 		    <mx:ControlBar width="100%">
 	            <mx:Spacer width="100%"/>
-	            <mx:Button id="newExperimentButton" label="New Experiment" click="newExperiment();" enabled="{createAllowed}"/>
+	            <mx:Button id="newExperimentButton" label="New Experiment" click="newExperiment();"/>
 	            <mx:Button id="copyExperimentButton" label="Copy Experiment" click="copyExperiment();" enabled="false"/>
 	            <mx:Button id="editExperimentButton" label="Edit Experiment" click="editExperiment();" enabled="false"/>
 	            <mx:Button id="deleteExperimentButton" label="Delete Experiment" click="deleteExperiment();" enabled="false"/>
-	            <!-- Broken: <mx:Button id="batchUploadButton" label="Batch Upload" click="batchUpload();"/> -->
 	        </mx:ControlBar>
 	
 		</mx:Panel>
-		
-		<connectivity:NeuralConnectivity label="Interpretation" id="connectivity" height="100%" width="100%"/>
-		
-
+		<mx:Panel label="Credits" height="100%" width="100%">
+		  <ui:CreditBox componentName="Neural Connectivity Application"/>
+		</mx:Panel>
 					
 	</mx:Accordion>
 	

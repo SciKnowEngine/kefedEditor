@@ -72,10 +72,15 @@
       <!--  <echoproperties/> -->
     </target>
 
+    <target name="print-version">
+        <echo>Java/JVM version: ${ant.java.version}</echo>
+        <echo>Java/JVM detail version: ${java.version}</echo>
+    </target>
+
     <target name="compile" depends="init">
       <mkdir dir="${BIN_DIR}"/>
       <javac srcdir="${SRC_DIR}"
-	     destdir="${BIN_DIR}"
+      	 destdir="${BIN_DIR}"
 	     classpathref="lib.jars"
 	     includeAntRuntime="false"/>
     </target>
