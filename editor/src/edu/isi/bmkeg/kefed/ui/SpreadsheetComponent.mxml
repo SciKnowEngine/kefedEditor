@@ -790,7 +790,7 @@
 			<mx:RemoveChild target="{activeObjectForm}"/>
 			<mx:AddChild relativeTo="{dataGrid}" creationPolicy="all">
 				<mx:VBox height="100%" width="100%">
-					<mx:Text text="{activeVb.nameValue}" fontSize="14" fontStyle="bold"/>
+					<mx:Text text="{activeVb.nameValue}" fontSize="14"/>
 					<!-- Need to turn off sorting, because it doesn't work correctly when a
 					     complex dotted sort field form is used in the DataGrid. 
 					     TODO: Investigate whether AdvancedDataGrid solves this problem, or

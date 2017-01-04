@@ -6,7 +6,7 @@
 	xmlns:mx="http://www.adobe.com/2006/mxml"
 	xmlns:ui="edu.isi.bmkeg.kefed.ui.*"
 	initialize="init()" creationComplete="handleCreationComplete(event)"
-	borderStyle="solid" borderColor="#FFFF00" borderThickness="2"
+	borderStyle="solid" borderColor="#FFFF00" 
 	backgroundAlpha="1" backgroundColor="#FFFFFF">
 	<!-- Component for entering descriptions of anonymous, relative
 	 regions.  Relative regions are arbitrary regions defined by their

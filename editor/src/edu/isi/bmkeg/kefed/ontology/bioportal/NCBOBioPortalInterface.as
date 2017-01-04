@@ -29,7 +29,7 @@ package edu.isi.bmkeg.kefed.ontology.bioportal
 		/** API key for NCBO restful web services calls
 		 */
 		[Bindable]
-		public var apikey:String = "af39dd48-ba3e-43a0-bf72-461030d945d8";
+		public var apikey:String = "ccbb4f5f-b8d9-4dff-8490-108ca643ba74";
 
 		private var baseUrl:String;
 		private var ncboSearchService:HTTPService;

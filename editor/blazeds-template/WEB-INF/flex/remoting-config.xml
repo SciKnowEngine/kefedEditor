@@ -8,7 +8,7 @@
 
     <default-channels>
         <channel ref="my-amf"/>
-        <channel ref="my-secure-amf"/>
+        <!-- <channel ref="my-secure-amf"/> -->
     </default-channels>
 
 </service>

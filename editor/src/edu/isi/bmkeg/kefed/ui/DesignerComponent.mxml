@@ -429,11 +429,9 @@
 						width="184" 
 						height="28" 
 						groupid="Basic"  
-						cornerRadius="0" 
 						paddingLeft="8" 
 						paddingBottom="3" 
 						paddingTop="3" 
-						backgroundColor="{ColorUtil.adjustBrightness2(flatPanel.getStyle('borderColor'),-50)}"
 						useHandCursor="true" />
 				<mx:Label text="Zoom: "/>
 				<kutil:DiagramZoomHSlider id="zoomControl"

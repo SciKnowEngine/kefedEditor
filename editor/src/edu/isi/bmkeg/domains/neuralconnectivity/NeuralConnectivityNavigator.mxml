@@ -548,7 +548,7 @@
 							itemRenderer="edu.isi.bmkeg.utils.CheckBoxDataGrid.CheckBoxRenderer" 
 							allowMultipleSelection="true" change="updateSelectedList()" />
 	
-			<mx:TextArea id="selectedOntologiesLabel" text="All" editable="false" borderThickness="0"/>
+			<mx:TextArea id="selectedOntologiesLabel" text="All" editable="false"/>
 		</mx:VBox>
 		
 	</mx:Panel>	

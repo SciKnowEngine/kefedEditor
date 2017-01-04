@@ -98,7 +98,7 @@
 				//  Setup up webservice for NCBO ontology lookup
 				nbco.addEventListener(OntologySearchEvent.LIST_ONTOLOGIES, ncboListOntologiesEventHandler);
 				nbco.addEventListener(FaultEvent.FAULT, FaultEventHandler);					
-				nbco.ncboListOntologies();
+				//nbco.ncboListOntologies();
 				
 				currentState = "Dashboard_State";
 				Application.application.setFocus();
