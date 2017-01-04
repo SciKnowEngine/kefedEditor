@@ -1,0 +1,12 @@
+.DS_Store
+.history
+.actionScriptProperties
+.flexProperties
+.idea/
+bin-debug/
+server/bin/
+server/blazeds.war
+server/derby.log
+server/out/
+server/persevere-0.9-patch/persevere-0.9-patch.iml
+server/server.iml
