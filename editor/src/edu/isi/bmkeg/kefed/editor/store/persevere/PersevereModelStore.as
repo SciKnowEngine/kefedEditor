@@ -13,7 +13,7 @@ package edu.isi.bmkeg.kefed.editor.store.persevere
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.rpc.http.HTTPService;
-	import edu.isi.bmkeg.kefed.editor.store.elasticSearch.ElasticSearchStoreUtil;
+	import edu.isi.bmkeg.kefed.editor.store.persevere.PersevereStoreUtil;
 
 	/** Model store that saves KefedModel to an underlying Persevere
 	 *  object store.  This serializes the model to a generic object
@@ -58,11 +58,11 @@ package edu.isi.bmkeg.kefed.editor.store.persevere
 			}	
 			this.serviceUrl = url;
 				
-			listService = ElasticSearchStoreUtil.initService("GET", listResultEventHandler, faultEventHandler);
-			retrieveService = ElasticSearchStoreUtil.initService("GET", loadResultEventHandler, faultEventHandler);
-			insertService = ElasticSearchStoreUtil.initService("POST", insertResultEventHandler, faultEventHandler);
-			saveService = ElasticSearchStoreUtil.initService("PUT", saveResultEventHandler, faultEventHandler);
-			deleteService = ElasticSearchStoreUtil.initService("DELETE", deleteResultEventHandler, faultEventHandler);
+			listService = PersevereStoreUtil.initService("GET", listResultEventHandler, faultEventHandler);
+			retrieveService = PersevereStoreUtil.initService("GET", loadResultEventHandler, faultEventHandler);
+			insertService = PersevereStoreUtil.initService("POST", insertResultEventHandler, faultEventHandler);
+			saveService = PersevereStoreUtil.initService("PUT", saveResultEventHandler, faultEventHandler);
+			deleteService = PersevereStoreUtil.initService("DELETE", deleteResultEventHandler, faultEventHandler);
 			// copyService = PersevereStoreUtil.initService("GET", copyResultEventHandler, faultEventHandler);
 		}
 

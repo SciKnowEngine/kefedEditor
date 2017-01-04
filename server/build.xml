@@ -19,9 +19,9 @@
     <fail unless="host.LAUNCH4J_HOME">LAUNCH4J_HOME environment variable needs to be set to the launch4j directory.</fail>
 
     <property name="LAUNCH4J_HOME" value="${host.LAUNCH4J_HOME}"/>
-    <property name="APP" value="BioScholarServer"/>
-    <property name="SHORT_NAME" value="BioScholar"/>
-    <property name="VERSION" value="1.0.4"/>
+    <property name="APP" value="KefedEditorServer"/>
+    <property name="SHORT_NAME" value="KefedEditor"/>
+    <property name="VERSION" value="1.0.5"/>
 
     <taskdef resource="net/sf/antcontrib/antlib.xml"
 	     classpath="${basedir}/ant/lib/ant-contrib.jar"/>
@@ -35,7 +35,7 @@
 	     classname="com.izforge.izpack.ant.IzPackTask"
 	     classpath="${basedir}/ant/lib/standalone-compiler.jar"/>
     <property name="CREATOR" value="University of Southern California"/>
-    <property name="APP_URL" value="https://wiki.birncommunity.org/display/NEWBIRNCC/BioScholar"/>
+    <property name="APP_URL" value="https://github.com/BMKEG/bioscholar-v1.0/"/>
     <property name="SRC_DIR" location="src"/>
     <property name="BIN_DIR" location="bin"/>
     <property name="BUILD_DIR" location="build"/>

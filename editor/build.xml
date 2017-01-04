@@ -42,15 +42,15 @@
     <property name="APP_WIDTH" value="100%" /> 
     <property name="APP_HEIGHT" value="100%" /> 
     <property name="ASDOC_COMMAND" value="${host.FLEX_HOME}/bin/asdoc"/>
-    <property name="DOC_TITLE" value="BioScholar KEfED Editor"/>
+    <property name="DOC_TITLE" value="KEfED Editor"/>
     <property name="DOC_FOOTER" value="USC ISI Biomedical Knowledge Engineering Group"/>
-    <property name="APP" value="BioScholar"/>
+    <property name="APP" value="KEfED Editor"/>
     <property name="DEMO_APP" value="NeuralConnectivity"/>
     <property name="CONTEXT_ROOT" value="blazeds"/>
     <property name="CONTEXT" value="bioscholar"/>
  <!-- Replace with smaller build set    <property name="APP_LIST" value="BioScholar,KefedModelEditor,KefedModelNavigator,NeuralConnectivity"/>
  -->
-    <property name="APP_LIST" value="BioScholar,NeuralConnectivity"/>
+    <property name="APP_LIST" value="KefedEditor,NeuralConnectivity"/>
     <property name="WARN" value="false"/>
 
     <fail unless="host.FLEX_HOME">FLEX_HOME environment variable needs to be set to the Flex SDK directory.</fail>

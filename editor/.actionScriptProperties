@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<actionScriptProperties analytics="false" mainApplicationPath="edu/isi/bmkeg/kefed/editor/bin/KefedModelEditorApp2.mxml" projectUUID="8edda738-6b99-4042-9828-57e691f23756" version="10">
-  <compiler additionalCompilerArguments="-locale en_US -services=./WEB-INF/flex/services-config.xml -context-root=bioscholar" autoRSLOrdering="true" copyDependentFiles="true" fteInMXComponents="false" generateAccessible="false" htmlExpressInstall="true" htmlGenerate="true" htmlHistoryManagement="true" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin-debug" removeUnusedRSL="true" rootURL="http://localhost:8080/bioscholar" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="false" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
+<actionScriptProperties analytics="false" mainApplicationPath="KefedEditor.mxml" projectUUID="8edda738-6b99-4042-9828-57e691f23756" version="10">
+  <compiler additionalCompilerArguments="-locale en_US -services=./WEB-INF/flex/services-config.xml" autoRSLOrdering="true" copyDependentFiles="true" flex3CompatMode="false" fteInMXComponents="false" generateAccessible="false" htmlExpressInstall="true" htmlGenerate="true" htmlHistoryManagement="true" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderLocation="/Applications/apache-tomcat-7.0.56/webapps/blazeds/kefedEditor-debug" outputFolderPath="bin-debug" removeUnusedRSL="true" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="false" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
     <compilerSourcePath>
       <compilerSourcePathEntry kind="1" linkType="1" path="blazeds-template"/>
     </compilerSourcePath>
@@ -12,6 +12,7 @@
   </compiler>
   <applications>
     <application path="edu/isi/bmkeg/kefed/editor/bin/KefedDataEditorApp3.mxml"/>
+    <application path="KefedEditor.mxml"/>
     <application path="edu/isi/bmkeg/kefed/editor/bin/KefedModelEditorApp2.mxml"/>
   </applications>
   <modules/>

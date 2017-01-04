@@ -18,27 +18,13 @@
 	</adapters>
 
 	<default-channels>
-		<channel ref="my-amf" />
-		<channel ref="my-secure-amf" />
+		<channel ref="my-http"/>
 	</default-channels>
 
-	<destination id="DefaultHTTP" channels="my-http">
+	<destination id="DefaultHTTP">
 		<properties>
 			<dynamic-url>http://localhost:9200/kefed/*</dynamic-url>
-			<dynamic-url>http://{server.name}:9200/kefed/*</dynamic-url>
-			<dynamic-url>http://data.bioontology.org/*</dynamic-url>
-		</properties>
-		<!-- <security> -->
-		<!-- <security-constraint ref="edit"/> -->
-		<!-- </security> -->
-	</destination>
-
-	<destination id="DefaultHTTPS" channels="my-secure-http">
-		<properties>
-			<dynamic-url>https://localhost:9200/kefed/*</dynamic-url>
-			<dynamic-url>https://{server.name}:9200/kefed/*</dynamic-url>
-			<dynamic-url>https://data.bioontology.org/*</dynamic-url>
 		</properties>
 	</destination>
-
+	
 </service>
