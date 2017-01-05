@@ -288,6 +288,10 @@
 				Application.application.eventDispatcher.
 							addEventListener(KefedAppEvent.EDIT_DATA, loadModelEventListener);
 			}
+			
+			// HACK TO FORCE INITIALIZATION OF THE MEASUREMENT VARIABLE CONTROL
+			currentState = "MeasurementSpecification_State";
+		
 		}
 		
 		public function loadModelEventListener(event:KefedAppEvent):void {
