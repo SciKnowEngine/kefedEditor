@@ -15,5 +15,6 @@ server/server.iml
 server/build/
 server/dist/
 server/doc/
+editor/bin
 editor/build/
 editor/dist/
