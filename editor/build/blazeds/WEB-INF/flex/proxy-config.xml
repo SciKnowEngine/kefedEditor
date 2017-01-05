@@ -18,27 +18,13 @@
 	</adapters>
 
 	<default-channels>
-		<channel ref="my-amf" />
-		<channel ref="my-secure-amf" />
+		<channel ref="my-http"/>
 	</default-channels>
 
 	<destination id="DefaultHTTP">
 		<properties>
-			<dynamic-url>http://localhost:*/persevere/*</dynamic-url>
-			<dynamic-url>http://{server.name}:*/persevere/*</dynamic-url>
-			<dynamic-url>http://data.bioontology.org/ontologies/*</dynamic-url>
-		</properties>
-		<!-- <security> -->
-		<!-- <security-constraint ref="edit"/> -->
-		<!-- </security> -->
-	</destination>
-
-	<destination id="DefaultHTTPS">
-		<properties>
-			<dynamic-url>https://localhost:*/persevere/*</dynamic-url>
-			<dynamic-url>https://{server.name}:*/persevere/*</dynamic-url>
-			<dynamic-url>http://rest.bioontology.org/bioportal/*</dynamic-url>
+			<dynamic-url>http://localhost:9200/kefed/*</dynamic-url>
 		</properties>
 	</destination>
-
+	
 </service>

@@ -8,7 +8,7 @@ server/derby.log
 server/out/*
 server/persevere-0.9-patch/persevere-0.9-patch.iml
 server/server.iml
-editor/.actionScriptProperties
+.actionScriptProperties
 .flexProperties
 .project
 .actionscriptProperties
@@ -18,4 +18,4 @@ editor/build/*
 server/build/*
 server/dist/*
 server/doc/*
-
+editor/bin
