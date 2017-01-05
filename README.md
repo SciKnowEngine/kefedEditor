@@ -4,6 +4,12 @@ The original BioScholar web application, described in
 
 _Note:_ This system was built for Java 1.6 with ant. Set JAVA_HOME to a local Java 1.6 distribution to compile and build full application by running performing the following:
 
+*Set JAVA_HOME to 1.6*
+```
+$ /usr/libexec/java_home -v 1.6
+$ export JAVA_HOME=<output-of-above-command>
+```
+*Build the system*
 ```
 $ cd editor
 $ ant
