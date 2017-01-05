@@ -10,7 +10,7 @@ server/persevere-0.9-patch/persevere-0.9-patch.iml
 server/server.iml
 .actionScriptProperties
 .flexProperties
-.project
+editor/.project
 .actionscriptProperties
 editor/bin-debug/*
 editor/build/*
