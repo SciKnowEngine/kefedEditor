@@ -3,6 +3,7 @@
 .actionScriptProperties
 .flexProperties
 .idea/
+.settings/
 bin-debug/
 server/bin/
 server/blazeds.war
@@ -14,4 +15,5 @@ server/server.iml
 server/build/
 server/dist/
 server/doc/
-
+editor/build/
+editor/dist/

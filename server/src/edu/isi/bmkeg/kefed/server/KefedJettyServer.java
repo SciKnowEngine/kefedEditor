@@ -43,8 +43,8 @@ import org.eclipse.jetty.webapp.WebAppContext;
 public class KefedJettyServer implements LifeCycle.Listener {
 
   /** PATH TO APPLICATION */
-  private static final String NEURO_URL_PATH = "/blazeds/bioscholar/NeuralConnectivity.html";
-  private static final String BIOSCHOLAR_URL_PATH = "/blazeds/bioscholar/BioScholar.html";
+  private static final String NEURO_URL_PATH = "/blazeds/kefedEditor/NeuralConnectivity.html";
+  private static final String KEFED_URL_PATH = "/blazeds/kefedEditor/KefedEditor.html";
   /** Default port to use for initial suggestion */
   private static final int DEFAULT_PORT = 50000;
   /** Minimum and Maximum user settable port values */
@@ -55,7 +55,7 @@ public class KefedJettyServer implements LifeCycle.Listener {
   private int port = DEFAULT_PORT;
   /** Use this to see if the current port has changed. */
   private int currentServerPort = DEFAULT_PORT;
-  private File workingDirectory = new File(System.getProperty("user.home"), "BioScholarServer");
+  private File workingDirectory = new File(System.getProperty("user.home"), "KEfEDEditorServer");
 
   private Server server = null;
   private String jettyHome;
@@ -223,7 +223,7 @@ public class KefedJettyServer implements LifeCycle.Listener {
     bbuilder.addGlue();
     bbuilder.addButton(quitButton);
 
-    p.add(new JLabel("<html><b>BioScholar Jetty Server</b></html>"), BorderLayout.NORTH);
+    p.add(new JLabel("<html><b>KEfEDEditor Jetty Server</b></html>"), BorderLayout.NORTH);
     p.add(builder.getPanel(), BorderLayout.CENTER);
     p.add(bbuilder.getPanel(), BorderLayout.SOUTH);
 
@@ -385,6 +385,6 @@ public class KefedJettyServer implements LifeCycle.Listener {
    * @exception Exception if an error occurs
    */
   public static void main(String[] args) throws Exception {
-    new KefedJettyServer("BioScholar Jetty Server", NEURO_URL_PATH, BIOSCHOLAR_URL_PATH);
+    new KefedJettyServer("KEfED Jetty Server", NEURO_URL_PATH, KEFED_URL_PATH);
   }
 }
