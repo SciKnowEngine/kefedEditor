@@ -24,5 +24,7 @@ $ ant
 
 You will need to install and run ElasticSearch to store the KEfED models. Once installed, make sure that the system has an index called `kefed`. This will be where we store all our models and data.  
 
+```
 curl -XPUT 'localhost:9200/kefed?pretty&pretty'
 curl -XGET 'localhost:9200/_cat/indices?v&pretty'
+```
