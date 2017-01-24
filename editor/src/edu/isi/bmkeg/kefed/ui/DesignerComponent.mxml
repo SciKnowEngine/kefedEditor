@@ -5,12 +5,8 @@
 <mx:VBox height="100%" width="100%" 
 	preinitialize="preinit();"
  	xmlns:mx="http://www.adobe.com/2006/mxml" 
-	xmlns:kapit="fr.kapit.*" 
-    xmlns:components="fr.kapit.components.*" 
-    xmlns:tree="fr.kapit.tree.*"
-    xmlns:diagctl="com.kapit.diagram.controls.*" 
+    xmlns:diagctl="com.kapit.diagram.controls.*"
     xmlns:diagview="com.kapit.diagram.view.*"                
-    xmlns:TDF="fr.kapit.tourdeflex.*"
     xmlns:ui="edu.isi.bmkeg.kefed.ui.*"
     xmlns:kutil="edu.isi.bmkeg.kefed.ui.kapit.*">
 		

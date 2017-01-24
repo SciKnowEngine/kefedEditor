@@ -6,7 +6,7 @@ $Revision$ -->
 				xmlns:ui="edu.isi.bmkeg.kefed.ui.*"
 				xmlns:persevere="edu.isi.bmkeg.kefed.ui.persevere.*"
 				xmlns:connectivity="edu.isi.bmkeg.domains.neuralconnectivity.*"
-				xmlns:powerloom="edu.isi.bmkeg.kefed.utils.powerloom.*"
+				xmlns:powerloom="edu.isi.bmkeg.utils.powerloom.*"
 				xmlns:kapit="edu.isi.bmkeg.kefed.ui.kapit.*"
 				preinitialize="DiagramMappings.initializeMappings();init();"
 				viewSourceURL="srcview/index.html">

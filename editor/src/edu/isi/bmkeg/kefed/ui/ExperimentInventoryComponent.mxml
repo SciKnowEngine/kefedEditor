@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" 
-		 xmlns:CheckBoxDataGrid="edu.isi.bmkeg.kefed.editor.utils.CheckBoxDataGrid.*"
+		 xmlns:CheckBoxDataGrid="edu.isi.bmkeg.utils.CheckBoxDataGrid.*"
 		 width="100%" height="100%"
-		 creationComplete="init();refresh()" xmlns:ui="edu.isi.bmkeg.kefed.editor.ui.*">
+		 creationComplete="init();refresh()" xmlns:ui="edu.isi.bmkeg.kefed.ui.*">
 	
 	<mx:Script>
 		<![CDATA[

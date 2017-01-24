@@ -8,7 +8,8 @@
 	xmlns:connectivity="edu.isi.bmkeg.domains.neuralconnectivity.*"
 	xmlns:pl="edu.isi.bmkeg.utils.powerloom.*"
 	xmlns:kapit="edu.isi.bmkeg.kefed.ui.kapit.*"
-	preinitialize="DiagramMappings.initializeMappings();init();"
+	preinitialize="DiagramMappings.initializeMappings();"
+	initialize="init();"
 	viewSourceURL="srcview/index.html">
     
     <mx:XML id="configuration" source="configuration.xml"/>
@@ -59,10 +60,11 @@
 				          			
 			public var config:Parameters;
 			public var model:KefedModel;
-			public var eventDispatcher:KefedAppEventDispatcher = new KefedAppEventDispatcher;
+			public var eventDispatcher:KefedAppEventDispatcher = new KefedAppEventDispatcher();
 			public var lib:SVGAssetLibrary;
-			
+
 			private var version:String = "$Revision$";
+			public var ncbo:NCBOBioPortalInterface = new NCBOBioPortalInterface();
 			public var ontologyList:ArrayCollection = new ArrayCollection();
 			public var selectedOntologies:Array = new Array();
 
@@ -92,14 +94,19 @@
 				dataStore = new ElasticSearchDataStore(dataStoreUrl);
 				jsonFormDataStore = new ElasticSearchDataStore(dataStoreUrl);
 
+				//  Setup up webservice for NCBO ontology lookup
+				this.ncbo.addEventListener(OntologySearchEvent.LIST_ONTOLOGIES, ncboListOntologiesEventHandler);
+				this.ncbo.addEventListener(FaultEvent.FAULT, FaultEventHandler);
+
 				currentState = "Dashboard_State";
 				Application.application.setFocus();
 			}
 			
 			private function ncboListOntologiesEventHandler(event:OntologySearchEvent):void {			
                 this.ontologyList = event.searchResults;
+				trace("Loaded Ontologies 1")
                 this.eventDispatcher.dispatchBioScholarEvent(KefedAppEvent.ONTOLOGY_LIST_LOADED);
-	  		}	
+	  		}
 			
 			private function FaultEventHandler(event:FaultEvent):void {
 				Alert.show(event.message.toString());				
@@ -111,7 +118,7 @@
 				if (selectedOntologies.length > 0) {
 					s = "";
 					for each (var ontology:Object in selectedOntologies) {
-						s += separator + ontology.abbreviation;
+						s += separator + ontology.acronym;
 						separator = ", ";
 					}
 				}

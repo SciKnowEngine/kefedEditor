@@ -26,6 +26,7 @@
 	   <properties>
             <dynamic-url>http://{server.name}:9200/*</dynamic-url>
 			<dynamic-url>http://localhost:9200/*</dynamic-url>
+		   <dynamic-url>http://data.bioontology.org/*</dynamic-url>
 		</properties>
 	</destination>
 

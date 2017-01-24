@@ -76,7 +76,9 @@
       <mkdir dir="${BIN_DIR}"/>
       <javac srcdir="${SRC_DIR}"
 	     destdir="${BIN_DIR}"
-	     classpathref="lib.jars"
+         target="1.6"
+         source="1.6"
+         classpathref="lib.jars"
 	     includeAntRuntime="false"/>
     </target>
 
@@ -254,7 +256,7 @@ java -Xmx${MAX_HEAP}m -jar ${APP_JAR_NAME}.jar
         </authors>
         <url>@{APP_URL}</url>
 	<uninstaller>Uninstall @{APP}</uninstaller>
-	<javaversion>1.5.0</javaversion>
+	<javaversion>1.6.0</javaversion>
 	<run-privileged condition="izpack.windowsinstall.vista|izpack.macinstall"/>
     </info>
 

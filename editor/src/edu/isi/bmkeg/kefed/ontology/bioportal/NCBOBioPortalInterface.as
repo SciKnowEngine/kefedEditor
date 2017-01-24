@@ -37,7 +37,6 @@ package edu.isi.bmkeg.kefed.ontology.bioportal
 		private var ncboListOntologiesService:HTTPService;
 		
 		private var searchResults:ArrayCollection = new ArrayCollection();
-
 		
 		private var term:XML = new XML();
 		private var kefedObj:IKefedNamedObject;
@@ -59,16 +58,14 @@ package edu.isi.bmkeg.kefed.ontology.bioportal
 		private function initNcboSearch():void {
 
 		 	ncboSearchService = new HTTPService();
-		 	ncboSearchService.useProxy = true;
-			ncboSearchService.destination="DefaultHTTP";
+		 	ncboSearchService.useProxy = false;
 		 	ncboSearchService.resultFormat = "text";
 			ncboSearchService.contentType = "application/javascript";
 			ncboSearchService.method = "GET";
 			ncboSearchService.addEventListener(ResultEvent.RESULT, ncboSearchResultEventHandler);
 			ncboSearchService.addEventListener(FaultEvent.FAULT, faultEventHandler);
-			
-		}		
 
+		}
 
 		override public function search(kefedObj:IKefedNamedObject, term:String, exact:Boolean, prop:Boolean):void {
 
@@ -78,11 +75,15 @@ package edu.isi.bmkeg.kefed.ontology.bioportal
 
 			var exactStr:String = (exact) ? "1" : "0";
 			var propStr:String = (prop) ? "1" : "0";
-		 	ncboSearchService.url = "http://rest.bioontology.org/bioportal/search/" 
+
+            ncboSearchService.url = "http://data.bioontology.org/search?format=xml&ontologies=OBI&q="
 		 			+ encodeURIComponent(term)
-		 			+ "?isexactmatch=" + exactStr 
+		 			+ "&isexactmatch=" + exactStr
 		 			+ "&includeproperties=" + propStr 
 		 			+ "&apikey=" + apikey; 	 	
+
+			trace(term)
+
 		 	CursorManager.setBusyCursor();
 			ncboSearchService.send();
 			
@@ -103,9 +104,13 @@ package edu.isi.bmkeg.kefed.ontology.bioportal
 		 	
 		 	var decoder:SimpleXMLDecoder = new SimpleXMLDecoder(true);
             var topXMLObject:Object = decoder.decodeXML(xmlDoc);
-                
-            var check:Object = topXMLObject.success.data;
-            
+
+			if( !topXMLObject.hasOwnProperty('class') ) {
+				return;
+			}
+
+            var check:Object = topXMLObject['class']['collection'];
+
             searchResults = new ArrayCollection();
             
             // Store a hash table of concept IDs so that we can
@@ -125,30 +130,26 @@ package edu.isi.bmkeg.kefed.ontology.bioportal
             	}
             }
             
-            if( check != null && check.page.numResultsTotal != "0" ) {
-            	var returnedTermsObj:Object = check.page.contents.searchResultList.searchBean;
+            if( check != null ) {
+            	var returnedTermsObj:Object = check['class'];
             	// We can only iterate over the returnedTermsObj if there is more than one.
             	// Otherwise we just get the fields of the object instead.
-            	if (check.page.numResultsTotal == "1") {
-            		if (allowedOntologyList == null || allowedOntologyList.contains(returnedTermsObj.ontologyId)) {
-	    	        	searchResults.addItem(returnedTermsObj);
-	    	        	if( lookup[returnedTermsObj.conceptId] != null ) {
-	    	        		returnedTermsObj.selected = true;
-	    	        	} else {
-	    	        		returnedTermsObj.selected = false;
-	    	        	}
-	    	        }
+            	if (returnedTermsObj is ArrayCollection) {
+                    for each (var j:Object in returnedTermsObj) {
+                        searchResults.addItem(j);
+						if( lookup[j.conceptId] != null ) {
+							j.selected = true;
+						} else {
+							j.selected = false;
+						}
+                    }
             	} else {
- 	           		for each (var j:Object in returnedTermsObj) {
-	     				if (allowedOntologyList == null || allowedOntologyList.contains(j.ontologyId)) {
-	    	        		searchResults.addItem(j);
-	    	        		if( lookup[j.conceptId] != null ) {
-	    	        			j.selected = true;
-	    	        		} else {
-	    	        			j.selected = false;
-	    	        		}
-	    	   			}
- 	           		}
+					searchResults.addItem(returnedTermsObj);
+					if( lookup[returnedTermsObj.conceptId] != null ) {
+						returnedTermsObj.selected = true;
+					} else {
+						returnedTermsObj.selected = false;
+					}
         	    }
             }
  
@@ -169,15 +170,14 @@ package edu.isi.bmkeg.kefed.ontology.bioportal
 		private function initNcboListOntologies():void {
 
 		 	ncboListOntologiesService = new HTTPService();
-		 	ncboListOntologiesService.useProxy = true;
-			ncboListOntologiesService.destination = "DefaultHTTP";
+		 	ncboListOntologiesService.useProxy = false;
 		 	ncboListOntologiesService.resultFormat = "text";
-			ncboListOntologiesService.contentType = "application/javascript";
-			ncboListOntologiesService.method = "GET";
-		 	ncboListOntologiesService.url = "http://rest.bioontology.org/bioportal/" + 
-		 			"ontologies?apikey=" + apikey; 	 	
-			
-			ncboListOntologiesService.addEventListener(ResultEvent.RESULT, 
+            ncboListOntologiesService.contentType = "application/javascript";
+            ncboListOntologiesService.method = "GET";
+		 	ncboListOntologiesService.url = "http://data.bioontology.org/" +
+		 			"ontologies?apikey=" + apikey + "&format=xml";
+
+            ncboListOntologiesService.addEventListener(ResultEvent.RESULT,
 					ncboListOntologiesEventHandler);
 			ncboListOntologiesService.addEventListener(FaultEvent.FAULT, 
 					faultEventHandler);
@@ -194,7 +194,9 @@ package edu.isi.bmkeg.kefed.ontology.bioportal
 			var xmlDoc:XMLDocument =  new XMLDocument(XML(event.result));	
 		 	var decoder:SimpleXMLDecoder = new SimpleXMLDecoder(true);
             var topXMLObject:Object = decoder.decodeXML(xmlDoc);
-            var check:Object = topXMLObject.success.data;
+            var check:Object = topXMLObject.ontologyCollection.ontology;
+            var allowedOntologies:Array = ["CHEBI", "CL", "DOID", "FIX", "FMA", "GO",
+					"IAO", "OBI", "OBO_REL", "PATO",  "PRO", "REX", "UO"];
             
 			var searchResults:ArrayCollection = new ArrayCollection();
 			
@@ -205,25 +207,20 @@ package edu.isi.bmkeg.kefed.ontology.bioportal
 			}
 			
             if( check != null ) {
-            	var returnedTermsObj:Object = check.list.ontologyBean;
-            	// searchResults = ArrayCollection(returnedTermsObj);
-            	
-            	// HACK: Filter ontologies to use in Crux.
-            	searchResults = new ArrayCollection();
-            	for each (var term:Object in returnedTermsObj) {
-//            		if (-1 != ArrayUtil.getItemIndex(term["abbreviation"], 
-//            										 ["CHEBI", "CL", "DOID", "FIX", "FMA",
-//            										  "GO", "IAO", "OBI", "OBO_REL", "PATO",
-//            										  "PRO", "REX", "UO"
-//													  /* , "BFO", "ECO", "HP" */
-//													  ])) {
-            			searchResults.addItem(term);
-            			allowedOntologyList.addItem(term.ontologyId);
-//            		}
-            	}
-            	
+            	var returnedTermsObj:Object = topXMLObject.ontologyCollection.ontology;
+				var tempResults:ArrayCollection = ArrayCollection(returnedTermsObj);
+
+                searchResults = new ArrayCollection();
+            	for each (var term:Object in tempResults) {
+					var p:int = ArrayUtil.getItemIndex(term['acronym'], allowedOntologies)
+					if( p != -1 ) {
+                        searchResults.addItem(term);
+                        allowedOntologyList.addItem(term);
+            		}
+				}
+
             	var dataSortField:SortField = new SortField();
-            	dataSortField.name = "displayLabel";
+            	dataSortField.name = "acronym";
 				dataSortField.numeric = false;
 				dataSortField.descending = false;
 				dataSortField.caseInsensitive = true;

@@ -38,8 +38,7 @@
 		"their own knowledge on a medium scale.</P><BR>" +
 		"<P>Further documentation and support may be found at the following locations:" +
 		"<li><a href=\"http://www.bioscholar.org/\">http://www.bioscholar.org/ - The BioScholar Homepage</a></li>" +
-		"<li><a href=\"http://code.google.com/p/bioscholar/\">http://code.google.com/p/bioscholar/ - The BioScholar Google Code project page.</a></li>" +
-		"<li><a href=\"https://wiki.birncommunity.org:8443/display/NEWBIRNCC/BioScholar\">https://wiki.birncommunity.org:8443/display/NEWBIRNCC/BioScholar - A bleeding-edge view of development concerning BioScholar on the BIRN Wiki</a></li>" +
+		"<li><a href=\"https://github.com/BMKEG/kefedEditor\">https://github.com/BMKEG/kefedEditor - The BioScholar Google Code project page.</a></li>" +
 		"</ul></P><BR>" +
 		""; 
 

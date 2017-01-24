@@ -97,13 +97,15 @@
     		dataStore.addEventListener(FaultEvent.FAULT, callError);
     		    		    		
     		if( Application.application.eventDispatcher != null ) {
+				trace("Registered inventory list")
     			var ed:EventDispatcher = Application.application.eventDispatcher;
 				ed.addEventListener(KefedAppEvent.SAVE_DATA_EDIT, saveEditedExperiment);
 				ed.addEventListener(KefedAppEvent.SAVE_DESIGN_EDIT, saveEditedModel);
 				ed.addEventListener(KefedAppEvent.CANCEL_DESIGN_EDIT, returnToDashboard);
 				ed.addEventListener(KefedAppEvent.ONTOLOGY_LIST_LOADED, ontologyListLoaded);
 			}
-		    		
+			Application.application.ncbo.ncboListOntologies();
+
 		}
 
 		private function checkKeys(e:KeyboardEvent):void {
@@ -510,9 +512,8 @@
 		
 
 		private function ontologyListLoaded(event:KefedAppEvent):void {
-	  	
+			trace("loaded ontologies 2");
 			this.ontologyList = Application.application.ontologyList;
-		  		
 	  	}
 		
 		private function updateSelectedList():void {
@@ -535,7 +536,7 @@
 			<grid:CheckBoxList width="100%" height="100%" id="list" 
 							initialize="list.dataProvider=ontologyList" 
 							dataProvider="{ontologyList}" 
-							labelField="displayLabel" 
+							labelField="name"
 							itemRenderer="edu.isi.bmkeg.utils.CheckBoxDataGrid.CheckBoxRenderer" 
 							allowMultipleSelection="true" change="updateSelectedList()" />
 	
