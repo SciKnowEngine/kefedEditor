@@ -1,0 +1,1650 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- $Id: CitationUpdate.mxml 2490 2011-06-15 23:55:41Z tom $ 
+     $Date: 2011-06-15 16:55:41 -0700 (Wed, 15 Jun 2011) $
+     $Revision: 2490 $ 
+     
+     Utilitiy code for updating the citation fields in the models
+     to add a citeKey and map that to a human readable source field. -->
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:kefedUI="edu.isi.bmkeg.kefed.ui.*"
+	xmlns:persevereUI="edu.isi.bmkeg.kefed.ui.persevere.*"
+	xmlns:connectivity="edu.isi.bmkeg.domains.neuralconnectivity.*"
+	xmlns:pl="edu.isi.bmkeg.utils.powerloom.*"
+	xmlns:kapit="edu.isi.bmkeg.kefed.ui.kapit.*"
+	preinitialize="DiagramMappings.initializeMappings();"
+	initialize="init();"
+	viewSourceURL="srcview/index.html">
+    
+    <mx:XML id="configuration" source="configuration.xml"/>
+    <mx:Model id="license" source="licenses.xml"/>
+
+    <mx:Script>
+		<![CDATA[
+			import mx.managers.CursorManager;
+			import edu.isi.bmkeg.kefed.store.DataStoreEvent;
+			import edu.isi.bmkeg.kefed.store.ModelStoreEvent;
+			import edu.isi.bmkeg.kefed.elements.KefedExperiment;
+			import edu.isi.bmkeg.kefed.ui.UiUtil;
+			import mx.managers.IBrowserManager;
+			import mx.managers.BrowserManager;
+			import edu.isi.bmkeg.kefed.store.persevere.PersevereDataStore;
+			import edu.isi.bmkeg.kefed.store.persevere.YogoModelStore;
+			import edu.isi.bmkeg.kefed.store.persevere.PersevereModelStore;
+			import edu.isi.bmkeg.kefed.store.IDataStore;
+			import edu.isi.bmkeg.kefed.store.IModelStore;
+			import mx.collections.ArrayCollection;
+			import mx.rpc.events.FaultEvent;
+			import mx.controls.Alert;
+			import mx.utils.URLUtil;
+		
+			import edu.isi.bmkeg.utils.Parameters;
+			import edu.isi.bmkeg.kefed.elements.KefedModel;
+			import edu.isi.bmkeg.kefed.elements.KefedObject;
+			import edu.isi.bmkeg.kefed.ui.kapit.DiagramMappings;    
+        	import com.kapit.diagram.library.SVGAssetLibrary;
+			import edu.isi.bmkeg.kefed.app.KefedAppEventDispatcher;
+			import edu.isi.bmkeg.kefed.app.KefedAppEvent;
+
+			import edu.isi.bmkeg.kefed.ontology.OntologySearchEvent;
+			import edu.isi.bmkeg.kefed.ontology.bioportal.NCBOBioPortalInterface;
+		
+			[Bindable]
+			public var serverUrl:String;
+			
+			[Bindable]
+			public var modelStore:IModelStore = null;
+			
+			[Bindable]
+			public var dataStore:IDataStore = null;
+			
+			[Bindable]
+			private var templateList:ArrayCollection;
+
+			[Bindable]
+			private var experimentList:ArrayCollection;
+			
+			[Bindable]
+			private var template:KefedModel;
+			
+			[Bindable]
+			public var experiment:KefedExperiment;
+			
+			
+			public var config:Parameters;
+			public var model:KefedModel;
+			public var eventDispatcher:KefedAppEventDispatcher = new KefedAppEventDispatcher;
+			
+			private var version:String = "$Revision: 2490 $";
+
+			private function init():void {
+				UiUtil.agreeToLicense(license.key, license.license);
+				if (serverUrl==null) {
+					serverUrl = URLUtil.getProtocol(this.url) + "://"
+				 	         + URLUtil.getServerNameWithPort(this.url) + "/";
+				}
+				trace(this.name + " serverURL = " + serverUrl);
+				config = new Parameters(configuration);
+				
+				// Setup the URLs for the various persistent storage mechanisms.
+				// Since the schemaStore is optional, it gets a null default value.
+				var modelStoreUrl:String = config.getValue("modelStoreUrl", "persevere/KefedModel");
+				var dataStoreUrl:String = config.getValue("dataStoreUrl", "persevere/KefedModel");
+				
+				modelStoreUrl = URLUtil.getFullURL(serverUrl, modelStoreUrl);
+				modelStore = new PersevereModelStore(modelStoreUrl);
+				dataStoreUrl = URLUtil.getFullURL(serverUrl, dataStoreUrl);
+				dataStore = new PersevereDataStore(dataStoreUrl);
+				
+				currentState = "Dashboard_State";
+				Application.application.setFocus();
+			}
+						
+			private function FaultEventHandler(event:FaultEvent):void {
+				Alert.show(event.message.toString());				
+			}
+			
+					private var citationMap:Object = new Object();
+		
+		private function setupCitationMap():void {
+             citationMap["Ak76"] = "Akers & Killackey '78, JCN181:513";
+            citationMap["Akaik92"] = "Akaike '92, JCN320:398";
+            citationMap["Akintun&Bux92"] = "Akintunde & Buxton '92, BR586:208";
+            citationMap["Al91"] = "Allen et al '91, JCN311:1-16";
+            citationMap["Alb&Minc83"] = "Albanese & Minciacchi '83, JCN216:406";
+            citationMap["Albanese85"] = "Albanese et al '85, BR329:334";
+            citationMap["Aldes&Boone84"] = "Aldes & Boone '84, JNsciRes12:553";
+            citationMap["Aldes&Boone85"] = "Aldes & Boone '85, ExpBR59:16";
+            citationMap["Aldes88"] = "Aldes '88, BRBull20:333";
+            citationMap["Aldes90"] = "Aldes '90, JCN302:643";
+            citationMap["Aldes92"] = "Aldes et al '92, BRBull29:931";
+            citationMap["All&Cech93"] = "Allen & Cechetto '93, JCN330:421";
+            citationMap["All&Hop89"] = "Allen & Hopkins '89, JCN286:311";
+            citationMap["All&Hop90"] = "Allen & Hopkins '90, JCN301:214";
+            citationMap["Allen&Cech92"] = "Allen & Cechetto '92, JCN315:313";
+            citationMap["Allen84"] = "Allen et al '84, BR321:357";
+            citationMap["Almeid93"] = "Almeida et al '93, NSci55:1093";
+            citationMap["Alonso&Kohler84"] = "Alonso & Kohler '84, JCN225:327";
+            citationMap["Alonso86"] = "Alonso et al '86, NsciLett66:251";
+            citationMap["Altar83"] = "Altar et al '83, BR279:1";
+            citationMap["Altschul91"] = "Altschuler et al '91, JCN304:261";
+            citationMap["Amaral&Kurz85"] = "Amaral & Kurz '85, JCN240:37";
+            citationMap["Amaral91"] = "Amaral et al '91, Hippocampus 1:415";
+            citationMap["An&Cir82"] = "Angaut & Cicirata '82, BrBehavEvol21:24";
+            citationMap["And&Flum80"] = "Anderson & Flumerfelt '80, JCN190:157";
+            citationMap["Ander83"] = "Anderson et al '83, Proc.Can.fed.Biol.Soc26:132";
+            citationMap["Ang&Cic88"] = "Angaut & Cicirata '88, BehavBR28:71";
+            citationMap["Ang&Sol89"] = "Angaut & Soleto '89, BR479:361";
+            citationMap["Angaut85"] = "Angaut et al '85, JHirnforsch26:463";
+            citationMap["Angaut85c"] = "Angaut et al '85c, Nsci15:389";
+            citationMap["Angaut86"] = "Angaut et al '86, NsciLett68:63";
+            citationMap["Angaut88"] = "Angaut et al '87, BrBehavEvol30:272";
+            citationMap["Antal84"] = "Antal '84, JHirnforsh25:647";
+            citationMap["Apps90"] = "Apps '90, JCN302:236";
+            citationMap["Ar90"] = "Arnualt & Roger '90,JCN302:110-123";
+            citationMap["Arak88"] = "Araki et al '88, BR441:319";
+            citationMap["Araki84"] = "Araki et al '84, Nsci13:433";
+            citationMap["Araki84b"] = "Araki et al '84, BR304:271";
+            citationMap["Arbab88"] = "Arbab et al '88, JCerebBloodFlowMetab8:54";
+            citationMap["Arl90"] = "Arluison et al '90, BRBull25:25";
+            citationMap["Arn&Rog87"] = "Arnault & Roger '87, JCN258:463";
+            citationMap["Arv&Pfa90"] = "Arvidsson & Pfaller '90, JCN292:349";
+            citationMap["Arvid91"] = "Arvidsson & Rice '91, JCN309:1";
+            citationMap["Arvis92"] = "Arvidsson et al '92, SomatosensMotRes9:199";
+            citationMap["Asan89"] = "Asanuma '89, ProcNatlAcadSciUSA86:4746";
+            citationMap["Asch&Ostw88"] = "Aschoff & Ostwald '88, ExpBR71:241";
+            citationMap["Astier90"] = "Astier et al '90, NsciLett118:141";
+            citationMap["AstJones86"] = "Aston-Jones et al '86, Science234:734";
+            citationMap["Asun&Port90"] = "Asanuma & Porter '90, JCN302:159";
+            citationMap["Aton52"] = "Antonetty & Webster '52, JCN153:449";
+            citationMap["Au88"] = "Audinat et al '88,???";
+            citationMap["Aziz&wood87"] = "Azizi & Woodward '87, JCN263:467";
+            citationMap["Azizi85"] = "Azizi et al '85, ExpBR59:36";
+            citationMap["Ba85"] = "Bayer '85, Chapter 8 in Paxinos (ed) \"The Rat Nervous System\" PG335-352";
+            citationMap["Bacon&Smith93"] = "Bacon & Smith '93, Nsci54:719";
+            citationMap["Bank&Neuh92"] = "Bankoul & Neuhuber '92, AnatEmbryolBerl185:77";
+            citationMap["Barm92"] = "Barmack et al '92, AnnNYAcadSci656:566";
+            citationMap["Barm92b"] = "Barmack et al '92, JCN317:250";
+            citationMap["Barm93"] = "Barmack et al '93, JCN328:263";
+            citationMap["Barr&FeMo88"] = "Barragan & Ferreyra-Moyano '88, NsciLett93:214";
+            citationMap["BarrWard&Kilp84"] = "Barrington-Ward & Kilpatrick '84, BR299:146";
+            citationMap["Batini89"] = "Batini et al '89, NsciLett99:251";
+            citationMap["Bay90"] = "Bayer '90, ExpNeur107:132";
+            citationMap["Be76"] = "Beckstead '76, JCN166:403";
+            citationMap["Be78"] = "Beckstead '78, BR152:249";
+            citationMap["Be79"] = "Beckstead '79, JCN184:43";
+            citationMap["Be79b"] = "Beckstead '79b, NsciLett12:59";
+            citationMap["Be79c"] = "Beckstead et al '79, BR174:1";
+            citationMap["Be79d"] = "Beckstead et al '79, BR175:191";
+            citationMap["Be83"] = "Beckstead & Frankfurter '83, ExpBR52:261";
+            citationMap["Behaz90"] = "Behazadi et al '90, Nsci37:77";
+            citationMap["Beitz82"] = "Beitz '82, Nsci7:133";
+            citationMap["Beitz83"] = "Beitz et al '83, BR258:305";
+            citationMap["Beitz83a"] = "Beitz et al '83, BR261:132";
+            citationMap["Beitz86"] = "Beitz et al '86, JCN250:498";
+            citationMap["Beitz87"] = "Beitz et al '87, Nsci20:409";
+            citationMap["Benass91"] = "Benassi et al '91, BehavBR 45:87";
+            citationMap["BenCla92"] = "Bennett-Clarke et al '92, JCN320:323";
+            citationMap["Benin&Spence86"] = "Beninato & Spencer '86, JCN253:525";
+            citationMap["Bent&Kuy82"] = "Bentiovoglio & Kuypers '82, ExpBR46:339";
+            citationMap["Bent&Molin84"] = "Bentivoglio & Molinari '84, ExpBR54:57";
+            citationMap["Benz83"] = "Benzinger & Massopust '83, ExpBR50:1";
+            citationMap["Ber&Fin81"] = "Berk & Finkelstein '81, BR226:1";
+            citationMap["Ber74"] = "Berger et al '74; BR81:332";
+            citationMap["Beren&Groen91"] = "Berendse & Groenwegen '91, Nsci42:73";
+            citationMap["Beren92"] = "Berendse et al '92, JNsci12:2079";
+            citationMap["Berendse88"] = "Berendse et al '88, JChemNeuroanat1:3";
+            citationMap["Berendse92b"] = "Berendse et al '92, JCN316:314";
+            citationMap["Berez&Kebkal91"] = "Berezovski & Kebkalo '91, Neirofiziologiia23:247";
+            citationMap["Berkeley86"] = "Berkeley '86, RevNeurolParis142:283";
+            citationMap["Bern87"] = "Bernard '87, JCN263:241";
+            citationMap["Bern90"] = "Bernard et al '90, NsciLett116:257";
+            citationMap["Bernard91"] = "Bernard et al '91, NsciLett122:257";
+            citationMap["Bernard93"] = "Bernard et al '93, JCN329:201";
+            citationMap["Berrett91"] = "Berretta et al '91, JCN305:273";
+            citationMap["Berry83"] = "Berry et al '83, JPhysiol 341,54P";
+            citationMap["Berry86"] = "Berry et al '86, JCN243:247";
+            citationMap["Bick&Hall92"] = "Bickford & Hall '92, JCN319:11";
+            citationMap["Bigl82"] = "Bigl et al '82, BRBull8:727";
+            citationMap["Bina93"] = "Binah et al '93, JCN335:295";
+            citationMap["Bish&Ho86"] = "Bishop & Ho '86, BR399:369";
+            citationMap["Bish84"] = "Bishop '84, NSci11:487";
+            citationMap["Bl70"] = "Blacksted et al '70, JCN138:433";
+            citationMap["Bla&Pal78"] = "Blanks & Palay '78, AnatRec190:34";
+            citationMap["Blan82"] = "Blanks et al '82, ExpBR48:228";
+            citationMap["Blanks83"] = "Blanks et al '83, ExpBR52:293";
+            citationMap["Ble&Byn85"] = "Bleier &Byrne '85, Chap3 in Paxinos' \"The Rat Nervous System\" (1985)";
+            citationMap["Block89"] = "Block et al '89, Peptides10:465";
+            citationMap["Bol&Smit92"] = "Bolam & Smith '92, JCN321:456";
+            citationMap["Bolt&Trac92"] = "Bolton & Tracey '92, ExpBR88:473";
+            citationMap["Bolt93"] = "Bolton et al '93, J ChemNanat6:101";
+            citationMap["Bons83"] = "Bons et al '83, CRSeancesAcaadSciIII297:347";
+            citationMap["Border86"] = "Border et al '86, BRBull17:169";
+            citationMap["Borke&Nau87"] = "Borke & Nau '87, BR422:235";
+            citationMap["Borke83"] = "Borke et al '83, BR269:47";
+            citationMap["Borke88"] = "Borke et al '88, BRBull21:795";
+            citationMap["Bowers83"] = "Bowers et al '84, Nsci13:87";
+            citationMap["Br90"] = "Brown & Zador '90 in Shepard(ed) \" The Synaptic Organization of the Brain\"";
+            citationMap["Bra82"] = "Brauer & Schober '82, ExpBR45:84";
+            citationMap["Brau73"] = "Brauer & Schober '73, JHirnforsch14:389";
+            citationMap["Brau79"] = "Brauer et al '79, ExpBR36:523";
+            citationMap["Brau84"] = "Brauer et al '84, JHirnforsch25:569";
+            citationMap["Brau84b"] = "Brauer et al '84b, JHirnforsch25:205";
+            citationMap["Brod74"] = "Brodal '74, pg 240, in Kornhuber \"The Handbook of sensory physiology\" Vol1";
+            citationMap["Brown77"] = "Brown et al '77, JCN176:1";
+            citationMap["Brown80"] = "Brown '80, BRBull5:267";
+            citationMap["BuDe&An88"] = "Buisserret-Delmas & Angaut '88, NSciLett84:255";
+            citationMap["BuDe&An89"] = "Buisseret-Delmas & Angaut '89, NsciRes7:131";
+            citationMap["BuDe&An89b"] = "Buisserret-Delmas & Angaut '89, JCN288:297";
+            citationMap["Buis88"] = "Buisseret-Delmas '88, NsciRes5:494";
+            citationMap["Buis88b"] = "Buisseret-Delmas '88, NsciRes5:475";
+            citationMap["Burk89"] = "Burkhalter '89, JCN279:186";
+            citationMap["Burn81"] = "Burne et al '81, JCN202:287";
+            citationMap["Burs&Potr93"] = "Burstein & Potrebic '93, JCN335:469";
+            citationMap["Byrum&Guy87"] = "Byrum & Guyenet '87, JCN261:529";
+            citationMap["Byrum84"] = "Byrum et al '84, BR303:15";
+            citationMap["CA11"] = "Cajal '11";
+            citationMap["Ca85"] = "Carey & Neal '85, BR329:185";
+            citationMap["Cad&Rog88"] = "Cadusseau & Roger '88, BehavBR28:81";
+            citationMap["Cad&Rog90"] = "Cadusseau & Roger '90, JHirnforsch31:459";
+            citationMap["Cad&Rog92"] = "Cadusseau & Roger '92, JHirnforsch33:19";
+            citationMap["Cad85"] = "Cadusseau & Roger '85, JHirnforsch26:667";
+            citationMap["Caduss&Roger85b"] = "Caduseau & Roger '85, CRAcadSciIII300:643";
+            citationMap["Caduss91"] = "Cadusseau & Roger '91, NsciRes12:83";
+            citationMap["Caffe87"] = "Caffe et al '87, JCN261:237";
+            citationMap["Caicedo&Herb93"] = "Caicedo & Herbert '93, JCN328:377";
+            citationMap["CallBled&Witt93"] = "Caballero-Bleda & Witter '93, JCN328:115";
+            citationMap["Camp&Arm83a"] = "Campbell & Armstrong '83a, BR275:215";
+            citationMap["Camp&Arm83b"] = "Campbell & Armstrong '83b, BR275:235";
+            citationMap["Camp91"] = "Campbell et al '91, BR558:239";
+            citationMap["Campana89"] = "Campana et al '89, BollSocItalBiolSper65:647";
+            citationMap["Campbell85"] = "Campbell et al '85, BR333:261";
+            citationMap["Cant&Gas82"] = "Cant & Gaston '82, JCN212:313";
+            citationMap["Cant&Swa92b"] = "Canteras & Swanson '92, JCN324:180";
+            citationMap["Cant&Swa92c"] = "Canteras & Swanson '92, JCN324:195";
+            citationMap["Cant&Swan92"] = "Canteras & Swanson '92, ProcNatlAcadSci89:10089";
+            citationMap["Cant88"] = "Canteras et al '88, BR458:53";
+            citationMap["Cant92"] = "Canteras et al '92, JCN324:143 errata: JCN324:604";
+            citationMap["Cant92{b}"] = "Canteras et al '92, JCN324:195";
+            citationMap["Car&Rie87"] = "Carey & Rieck '87, BR424:205";
+            citationMap["Car85"] = "Carlsen et al '85, JCN234:155";
+            citationMap["Card82"] = "Card & Moore '82, JCN206:290";
+            citationMap["Carls&Heim86"] = "Carlsen & Heimer '86, BR374:375";
+            citationMap["Carlsen89"] = "Carlsen '89, ActaNeurolScandSupple122:1";
+            citationMap["Carnes90"] = "Carnes et al '90, JCN302:824";
+            citationMap["Carst90"] = "Carstens et al '90, Nsci35:609";
+            citationMap["Casal88"] = "Casale et al '88, JCN278:275";
+            citationMap["Cass89"] = "Cassel et al '89, JCN279:235";
+            citationMap["Cassell86"] = "Cassell et al '86, JCN246:478";
+            citationMap["Cast92"] = "Casteneyra-Perdomo et al '92, NsciLett139:135";
+            citationMap["Cavada84"] = "Cavada et al '84, BR308:123";
+            citationMap["Cech87"] = "Cechetto & Saper '87, JCN262:27";
+            citationMap["Cechetto85"] = "Cechetto et al '85, JCN240:153";
+            citationMap["Cenq2006"] = "Cenquizca & Swanson '06, JCN497:101";
+            citationMap["Cesaro85"] = "Cesaro et al '85, BR325:29";
+            citationMap["Cesaro86"] = "Cesaro et al '86, RevNeurolParis142:297";
+            citationMap["Ch-Pa77"] = "Chan-Palay et al '77, ExpBR30:561";
+            citationMap["Ch92"] = "Chandler er al '92, NsciLett143:237";
+            citationMap["Chan86"] = "Chan et al '86, NsciLett71:277";
+            citationMap["Chang&Kit85"] = "Chang & Kitai '85, BR347:112";
+            citationMap["Chaouch83"] = "Chaouch et al '83, JCN214:309";
+            citationMap["Charl&Helk87"] = "Charlton & Helke '87, BR418:245";
+            citationMap["Chen&Su90"] = "Chen & Su '90, BR522:1";
+            citationMap["Chev&Deni84"] = "Chevalier & Deniau '84, Nsci12:427";
+            citationMap["Chiaka91"] = "Chiaka et al '91, JCN314:201";
+            citationMap["Chib&Mura85"] = "Chiba & Murata '85, BRBull14:261";
+            citationMap["Christ85"] = "Christie et al '85, BR333:169";
+            citationMap["Christ85b"] = "Christie et al '85, JNchem45:477";
+            citationMap["Christ87"] = "Christie  et al '87, Nsci22:425";
+            citationMap["Christie86"] = "Christie et al '86, BRBull16:127";
+            citationMap["Chronwall85"] = "Chronwall '85, Peptides6Suppl2:1";
+            citationMap["Cicirata86"] = "Cicirata et al '86, Nsci19:81";
+            citationMap["Cinelli87"] = "Cinelli et al '87, BRBull19:651";
+            citationMap["Cint80"] = "Cintas et al '80, pg73-96 in Courville et al 80, \"The inferior olivary nucleus.\"";
+            citationMap["Ciriello83"] = "Ciriello '83, NsciLett36:37";
+            citationMap["Cla32"] = "Clarke '32";
+            citationMap["Clark&Proud91"] = "Clark & Proudfit '91, BR538:231";
+            citationMap["Clark&Proud91b"] = "Clark & Proudfit '91, BR540:105";
+            citationMap["Clark&Proud92"] = "Clark & Proudfit '92, BR591:44";
+            citationMap["Clark&Proud93"] = "Clark & Proudfit '93, BR616:200";
+            citationMap["Clarke87"] = "Clarke et al '87, Nsci23:1011";
+            citationMap["Clarke89"] = "Clarke et al '89, VisNsci2:269";
+            citationMap["Cler&Cole90"] = "Clerici & Coleman '90, JCN297:14";
+            citationMap["Cliff91"] = "Cliffer et al '91, JNsci11:852";
+            citationMap["Co90"] = "Co90,";
+            citationMap["Coff92"] = "Coffield et al '92, JCN321:488";
+            citationMap["Col80"] = "Coleman & Clerici '80, BR194:205";
+            citationMap["Cole&Cler87"] = "Coleman & Clerici '87, JCN262:215";
+            citationMap["Cole80"] = "Coleman & Clerici '80, BR194:205";
+            citationMap["Colom85"] = "Colombo et al '85, ExpNeurol90:510";
+            citationMap["Con&Pfa76a"] = "Conrad & Pfaff '76, JCN169:185";
+            citationMap["Con&Pfa76b"] = "Conrad & Pfaff '76, JCN169:221";
+            citationMap["Conde90"] = "Conde et al '90, BRBull24:341";
+            citationMap["Connelly89"] = "Connelly et al '89, NsciLett105:34";
+            citationMap["Consolaz85"] = "Consolazione et al '85, BR338:140";
+            citationMap["Coog&Burk93"] = "Coogan & Burkhalter '93, JNsci13:3749";
+            citationMap["Coog90"] = "Coogan & Burkhalter '90, ExpBR80:49";
+            citationMap["Coop&Phil88"] = "Cooper & Phillipson '88, Rheinfelden, AbstrNo.108";
+            citationMap["Copr90"] = "Copray et al '90, BR514:343";
+            citationMap["Corn&Phil88"] = "Cornwall & Phillipson '88, Nsci24:1035";
+            citationMap["Corn&Phil88b"] = "Cornwall & Phillipson '88, BRBull20:139";
+            citationMap["Corn&Phil88c"] = "Cornwall & Phillipson '88, BRBull21:147";
+            citationMap["Corn&Phil89"] = "Cornwall & Phillipson '89, BR491:194";
+            citationMap["Corn&Phill88"] = "Cornwall & Phillipson '88, NsciLett88:121";
+            citationMap["Corn90"] = "Cornwall et al '90, BRBull25:271";
+            citationMap["Corn90b"] = "Cornwall et al '90b, ExpBR80:157";
+            citationMap["Corvaja93"] = "Corvaja et al '93, Nsci55:417";
+            citationMap["Cosen&Moor84"] = "Cosenza & Moore '84, BR310:367";
+            citationMap["Cow&Fran79"] = "Cowey & Franzini '79, ExpBR35:443";
+            citationMap["Cow&Per79"] = "Cowey & Perry '79, ExpBR35:457";
+            citationMap["Cucc90"] = "Cucchiaro et al '91";
+            citationMap["Cullin&Zabor91"] = "Cullinan & Zaborszky '91, JCN306:631";
+            citationMap["Cullin93"] = "Cullinan et al '93, JCN332:1";
+            citationMap["Cunning&Sawchen88"] = "Cunningham & Sawchenko '88, JCN274:60";
+            citationMap["Cus81"] = "Cusick & Lund '81, BR214:239";
+            citationMap["Daniel88"] = "Daniel et al '88, BehavBR28:69";
+            citationMap["Dann87"] = "Dann & Buhl '87, JCN262:141";
+            citationMap["Day&Sib88"] = "Day & Sibbald '88, BR454:387";
+            citationMap["De-Camilli84"] = "De-Camilli et al '84, Nsci11:761";
+            citationMap["De83"] = "Deacon et al '83, JCN220:168-190";
+            citationMap["Dean78"] = "Dean '78, BR156:17";
+            citationMap["Dean81b"] = "Dean '81b, BehavBR3:239";
+            citationMap["Del&Rosina86"] = "Del & Rosina '86, NsciLett71:37";
+            citationMap["deOl85"] = "de Olmos & Beltramino (observations), chap7 of Paxinos' The Rat Nervous System, pg 223.";
+            citationMap["dePomm84"] = "de-Pommery et al '84, NsciLett50:319";
+            citationMap["Descarries86"] = "Descarries et al '86, JCN249:511";
+            citationMap["Deutch86"] = "Deutch et al '86, NsciLett71:257";
+            citationMap["deVries93"] = "de-Vries et al '93, BR612:231";
+            citationMap["DeZee93"] = "De-Zeeuw et al '93, JCN327:63";
+            citationMap["DeZeeuw93"] = "DeZeeuw et al '93, JCN327:63";
+            citationMap["Diet92"] = "Dietrichs et al '92, ArchItalBiol130:203";
+            citationMap["Dino&Parn91"] = "Dinopolous & Parnavelas '91, NsciLett134:12";
+            citationMap["Dinopoul91"] = "Dinopoulos et al '91, NsciLett121:25";
+            citationMap["Div78"] = "Divac et al '78, Nsci3:785";
+            citationMap["Div78a"] = "Divac et al '78a, JCN180:59";
+            citationMap["Div78b"] = "Divac et al '78b, Nsci3:785";
+            citationMap["Div79"] = "Divac '79, Nsci4:455";
+            citationMap["Divac87"] = "Divac et al '87, NSci21:197";
+            citationMap["Divac93"] = "Divac '93, ActaNbiolExpWarsz53:425";
+            citationMap["Dohan&McEwan86"] = "Dohanich & McEwen '86, BRBull16:477";
+            citationMap["dOl&Ing72"] = "de Olmos & Ingram '72, JCN146:303";
+            citationMap["dOl72"] = "de Olmos '72, in neurobiology of the amaygdala, Pages145-202";
+            citationMap["dOl85"] = "de Olmos et al '85; Chap 7 of Paxinos (ed) The Rat Nervous System, page 223-334";
+            citationMap["Dome69"] = "Domesick '69, BR12:296";
+            citationMap["Dome72"] = "Domesick '72, BBehavEvol6:457";
+            citationMap["Don83"] = "Donoghue & Parham '83, JCN217:390";
+            citationMap["Dong&Shen86"] = "Dong & Shen '86, SciSinB29:599";
+            citationMap["Donnelly83"] = "Donnelly et al '83, BR288:315";
+            citationMap["Donog&Herken86"] = "Donoghue & Herkenham '86, BR365:397";
+            citationMap["Donovan&Wyss83"] = "Donovan & Wyss '83, BR259:181";
+            citationMap["Dori92"] = "Dori et al '92, JCN319:191";
+            citationMap["Douglas87"] = "Douglas et al '87, BR418:111";
+            citationMap["Dow36"] = "Dow '36, JCN63:527";
+            citationMap["Dreh85"] = "Dreher et al '85, BrainBehavEvol26:10";
+            citationMap["Dreh90"] = "Dreher et al '90, EurJNsci2:317";
+            citationMap["Dru82"] = "Druga '82, JfurHirnforsch23:191";
+            citationMap["Drug&Syk84"] = "Druga & Syka '84, NsciLett45:247";
+            citationMap["Drug88"] = "Druga '88, FoliaMorpholPraha36:42";
+            citationMap["Druga92"] = "Druga '92, FunctDevMorphol2:235";
+            citationMap["Durs79"] = "Dursteler et al '79, JCN183:185";
+            citationMap["Eber85"] = "Eberhart et al '85, JCN241:285";
+            citationMap["Ebrahim92"] = "Ebrahimi et al '92, NsciResNY14:39";
+            citationMap["Eckenstein88"] = "Eckenstein et al '88, Nsci25:457";
+            citationMap["Eding79"] = "Edinger et al '79, ExpNeurol63:504";
+            citationMap["Ei82"] = "Eichenbaum et al '82, SocNsciAb8:935";
+            citationMap["Eich74"] = "Eichler & Moore '74, ActaAnat89:359 {Hamster}";
+            citationMap["Eisen81"] = "Eisenman '81, JCN199:65";
+            citationMap["Eisen84"] = "Eisenman '84, BrBehEvol24:1";
+            citationMap["Ellen&Feld90"] = "Ellenberger & Feldman '90, BR513:35";
+            citationMap["Em&Koo77"] = "Emson & Koob '77; BR142:249";
+            citationMap["Eric91"] = "Ericson et al '91, JCN311:45";
+            citationMap["Ericson87"] = "Ericson et al '87, 263:1";
+            citationMap["Estev93"] = "Esteves et al '93, SomatMotRes10:203";
+            citationMap["Fa91"] = "Fabri & Burton '91, JCN311:405-424";
+            citationMap["Fab&Bur91b"] = "Fabri & Burton '91, BR538:351";
+            citationMap["Fahr86"] = "Fahrbach et al '86, 247:364";
+            citationMap["Fahrbach89"] = "Fahrbach et al '89, ExpBR77:221";
+            citationMap["Fal79"] = "Fallon & Moore '79, NsciLett14:265";
+            citationMap["Fall&Moo78a"] = "Fallon & Moore '78a:JCN180:545";
+            citationMap["Fall&Moo78b"] = "Fallon & Moore '78b, \"The Topology of the mesencephalic dopamine neuron systems\", Fourth International Catecholamine Symposium";
+            citationMap["Fall&Moo78c"] = "Fallon & Moore '78c, JCN180:533";
+            citationMap["Fall78a"] = "Fallon et al '78a, JCN180:509";
+            citationMap["Fall83"] = "Fallon et al '83, NsciLett40:233";
+            citationMap["Fall83b"] = "Fallon '83, BRBull10:775";
+            citationMap["Fall83c"] = "Fallon et al '83, NsciLett37:29";
+            citationMap["Fall84"] = "Fallon et al '84, BR321:332";
+            citationMap["Fall84b"] = "Fallon et al '84b, BR321:332";
+            citationMap["Fall85"] = "Fallon & Loughlin '85, Chap 9 in Paxinos 'The Rat Nervous system.'";
+            citationMap["Falls&Alban86"] = "Falls & Alban '86, SomatosensRes4:1";
+            citationMap["Falls84"] = "Falls '84, Nsci13:1279";
+            citationMap["Falls85"] = "Falls et al '85, SomatosensRes3:89";
+            citationMap["FareLund86"] = "Fare-Lund '86, AnatEmbryolBerl175:35";
+            citationMap["Faull86"] = "Faull et al '86, Nsci19:1119";
+            citationMap["FayeLund85"] = "Faye-Lund '85, AnatEmbryolBerl173:53";
+            citationMap["FayeLund86"] = "Faye-Lund '85, AnatEmbryolBerl175:35";
+            citationMap["Fe87"] = "Ferino et al '87,ExpBR65:421";
+            citationMap["Febvret91"] = "Febvret et al '91, BR547:37";
+            citationMap["Ferino87b"] = "Ferino et al '87, BR417:257";
+            citationMap["FiJen&Mol90"] = "Fink-Jensen & Moller '90, BR522:337";
+            citationMap["Fin&Bab81"] = "Finch & Babb '81, BR214:405";
+            citationMap["Fin83"] = "Finch et al '83, BR271:201";
+            citationMap["Fin84"] = "Finch et al '84, ExpNeurol83:468";
+            citationMap["Finch86"] = "Finch et al '86, BR370:273";
+            citationMap["FinJen&Mik89"] = "Fink-Jensen & Mikkelsen '89, BR476:194";
+            citationMap["Finn&Jeff93"] = "Finnerty & Jeffreys '93, Nsci56:101";
+            citationMap["Fish82"] = "Fish et al '82, JCN204:6";
+            citationMap["FleetWalk83"] = "Fleetwood-Walker et al '83, BR273:25";
+            citationMap["Flum&Hryc85"] = "Flumerfelt & Hrycyshyn '85, Chap 10 in Paxinos 85";
+            citationMap["Fodor&Palkov91"] = "Fodor & Palkovits '91, NsciLett133:195";
+            citationMap["Fonnum&Cont84"] = "Fonnum & Contestabile '84, JNchem43:881";
+            citationMap["Foster89"] = "Foster et al '89: Nsci29:685";
+            citationMap["Fox&Powley86"] = "Fox & Powley '86, JAutonNervSyst15:55";
+            citationMap["Fred&Mug91"] = "Fredette & Mugnaini '91, AnatEmbryolBerl184:225";
+            citationMap["Freed91"] = "Freedman & Cassel '91, BRBull26:957";
+            citationMap["Freund92"] = "Freund '92, EpilepsyERsSuppl7:79";
+            citationMap["Fria&Ostw88"] = "Friauf & Ostwald '88, ExpBR73:263";
+            citationMap["Fric&Cow78"] = "Fricke & Cowan '78, JCN181:253";
+            citationMap["Frit&Grza90"] = "Fritschy & Grzanna '90, JCN293:616";
+            citationMap["Fuku74"] = "Fukuda et al '74, BR67:157";
+            citationMap["Fuku79"] = "Fukuda et al '79, JpnJPhysiol29:283";
+            citationMap["Fuku80"] = "Fukuda et al '80, in Ito's \"Integrative Control Function of the Brain\"";
+            citationMap["Fulwiler&Saper84"] = "Fulwiler & Saper '84, BR319:229";
+            citationMap["Fulwiler&Saper84a"] = "Fulwiler & Saper '84, BRRev7:229";
+            citationMap["Fung87"] = "Fung et al '87, BR401:347";
+            citationMap["Fur&Wat83"] = "Furber & Watson '83, BrBehavEvol22:132";
+            citationMap["Fux74"] = "Fuxe et al '74, BR82:349";
+            citationMap["Gaar78"] = "Gaarskjaer '78, JCN178:49";
+            citationMap["Gab85"] = "Gabriel et al '85, ExpBR61:210";
+            citationMap["Gabb86"] = "Gabbot et al '86, Nsci19:101";
+            citationMap["Game&Wine88"] = "Games & Winer '88, HearRes34:1";
+            citationMap["Gan&GimAma91"] = "Gandia & Gimenez-Amaya '91, JHirnforsch32:79";
+            citationMap["Gandia93"] = "Gandia et al '93, BRBull32:352";
+            citationMap["Gasba91"] = "Gasbarri et al '91, JHirnforsch32:429";
+            citationMap["Gasbar89"] = "Gasbarri et al '89, Boll.Soc.Ital.Biol.Sper65:639";
+            citationMap["Gay&Fau88"] = "Gayer & Faull '88, BR449:253";
+            citationMap["Gaykema91"] = "Gaykema et al '91, ActaPsychScandSuppl366:14";
+            citationMap["Gaykema91b"] = "Gaykema et al '91, JCN303:563";
+            citationMap["Gerf82"] = "Gerfen et al '82, JCN207:283";
+            citationMap["Gerfen84"] = "Gerfen '84, Nature311:461";
+            citationMap["Ghazi87"] = "Ghazi et al '87, JCN258:378";
+            citationMap["Giesl88"] = "Giesler et al '88, JCN 268:223";
+            citationMap["Giol74"] = "Giolli & Creel '74, BR78:335";
+            citationMap["Giol82"] = "Giolli et al '82, ANatRec205:64A";
+            citationMap["Giol83"] = "Giolli et al '83, JCN227:228";
+            citationMap["Giol84-Giol85"] = "Giolli et al '84, JCN 227:228/Giolli et al '85, JCN232:99";
+            citationMap["Giol84b"] = "Giolli et al '84, JCN227:228";
+            citationMap["Giol85c"] = "Giolli et al '85c; NsciLett53:1";
+            citationMap["Giol85d"] = "Giolli et al '85, JCN232:99";
+            citationMap["Giol88a"] = "Giolli et al '88, JCN269:73";
+            citationMap["Giol88b"] = "Giolli et al '88, JCN277:608";
+            citationMap["Giol90"] = "Giolli et al '90, BrazJMedBiolRes23:1349";
+            citationMap["Giol92"] = "Giolli et al '92, JCN319:349";
+            citationMap["Gold&vdKooy88"] = "Goldsmith & van-der-Kooy '88, BR445:386";
+            citationMap["Gonz&Chess90"] = "Gonzales & Chesselet '90, JCN297:182";
+            citationMap["Gonz92"] = "Gonzalo-Ruiz et al '92, JCN321:277";
+            citationMap["Good&Slov92"] = "Goodman & Sloviter '92, Hippocampus2:13";
+            citationMap["Good63"] = "Goodman et al '63, JCN121:51";
+            citationMap["Good66"] = "Goodman & Horel '66, JCN127:71";
+            citationMap["Good73"] = "Goodman et al '73, BrBehavEvol8:27";
+            citationMap["Gott73"] = "Gottlieb & Cowan '73, JCN149:393";
+            citationMap["Grant80"] = "Grant et al '80, NsciLett16:223";
+            citationMap["Granum86"] = "Granum '86, JCN247:159";
+            citationMap["Gravel87"] = "Gravel et al '87, JCN265:294";
+            citationMap["Gray&Magnus92"] = "Gray & Magnuson '92, Peptides13:451";
+            citationMap["Gray74"] = "Graybiel '74, ExpBR20:303";
+            citationMap["Groen&Beren90"] = "Groenewegen & Berendse '90, JCN294:607";
+            citationMap["Groen&Naut83"] = "Groenwegen & Nauta '82, NSciLettSuppl10:217";
+            citationMap["Groen&VanDij84"] = "Groenewegen & Van-Dijk '84, BR304:367";
+            citationMap["Groen90"] = "Groenewegen et al '90, ProgBR85:95, disc116";
+            citationMap["Groene86"] = "Groenewegen et al '86, JCN249:65";
+            citationMap["Groene87"] = "Groenewegen et al '87, Nsci23:103";
+            citationMap["Groene88"] = "Groenewegen '88, Nsci24:379";
+            citationMap["Grof&Kean91"] = "Grofova & Keane '91, AnatEmbryolBerl184:275";
+            citationMap["Grove88"] = "Grove '88, JCN277:347";
+            citationMap["Grove88b"] = "Grove '88b, JCN277:315";
+            citationMap["Gu83"] = "Guldin & Markowitsch '83, JCN215:135";
+            citationMap["GuFlor&Way87"] = "Guevara-Flores & Wayner '87, BRBull18:673";
+            citationMap["Guil71"] = "Guillery et al '71, Sci174:831";
+            citationMap["Guye&young87"] = "Guyenet & Young '87, BR406:171";
+            citationMap["Gwyn83"] = "Gwyn et al '83, NsciLett42:243";
+            citationMap["GzRz&Leich87"] = "Gonzalo-Ruiz & Leichnetz '87, ExpBR68:365";
+            citationMap["Hab78a"] = "Haberly & Price '78a, JCN178:711";
+            citationMap["Haber85"] = "Haber et al '85, JCN235:322";
+            citationMap["Hadith&Mitch87"] = "Hadithi & Mitchell '87, JAnat154:113";
+            citationMap["Hag&Rub85"] = "Hagen & Rubertone in prep in '85";
+            citationMap["Haglund84"] = "Haglund et al '84, JCN229:171";
+            citationMap["Hal78"] = "Hale & Sefton '78, BR153:591";
+            citationMap["Hal82"] = "Hale et al '82, ExpBR45:217";
+            citationMap["Hale79"] = "Hale et al '79, ExpBR425-442";
+            citationMap["Hallan&Wain88"] = "Hallanger & Wainer '88, JCN274:483";
+            citationMap["Hallanger87"] = "Hallanger et al '87, JCN262:105";
+            citationMap["Ham&Jacob84"] = "Hamill & Jacobowitz '84, BRBull13:527";
+            citationMap["Hamill&Fass84"] = "Hamill & Fass '84, NsciLett48:43";
+            citationMap["Hammond83"] = "Hammond et al '83, Nsci9:41";
+            citationMap["Hancock88"] = "Hancock '88, JCN276:460";
+            citationMap["Har&Wan86"] = "Haring & Wang '86, BR366:152";
+            citationMap["Hard86"] = "Hardy '86, NsciLett63:159";
+            citationMap["Haring&Davies85"] = "Haring & Davies '85, BR325:366";
+            citationMap["Haring90"] = "Haring et al '90, SomaMotRes7:391";
+            citationMap["Harman88"] = "Harman et al '88, BR441:87";
+            citationMap["Harr&Feld70"] = "Harrison & Feldman '70, Contributions to sensory physiology 4:95";
+            citationMap["Harrington87"] = "Harrington '87, BR410:275";
+            citationMap["Harris&Irv65"] = "Harrison and &Irving '65, JCN124:15";
+            citationMap["Harris&Irv66"] = "Harrison & Irving '66, JCN126:51";
+            citationMap["Harris&Irv66b"] = "Harrison & Irving '66, JCN126:391";
+            citationMap["Harris&War62"] = "Harrison & Warr '62, JCN119:341";
+            citationMap["Hart72"] = "Harting et al '72, JCN148:361";
+            citationMap["Harv90"] = "Harvey & Worthington '90, JCN298:281";
+            citationMap["Hay60"] = "Hayhow et al '60, JCN115:187";
+            citationMap["Hay62"] = "Hayhow et al '62, JCN118:295";
+            citationMap["Haya&Zyo84"] = "Hayakawa & Zyo '84, BR300:335";
+            citationMap["Haya&Zyo89"] = "Hayakawa & Zyo '89, JCN284:1";
+            citationMap["Haya&Zyo90"] = "Hayakawa & Zyo '90, JCN298:224";
+            citationMap["Haya&Zyo91"] = "Hayakawa & Zyo '91, AnatEmbryolBerl184:611";
+            citationMap["Haya93"] = "Hayakawa et al '93, AnatEmbryolBerl188:139";
+            citationMap["HaySch&Maikk92"] = "Hay-Schmidt & Mikkelsen '92, BR576:343";
+            citationMap["Haz72"] = "Hazlett et al '72, JCN146:95";
+            citationMap["Heim91"] = "Heimer et al '91, Nsci41:89";
+            citationMap["Heimer87"] = "Heimer et al '87, JCN255:571";
+            citationMap["Herb&Sap92"] = "Herbert & Saper '92, JCN315:34";
+            citationMap["Herb92"] = "Herbert '92, CellTisRes270:149";
+            citationMap["Herbert91"] = "Herbert et al '91, JCN304";
+            citationMap["Herk78"] = "Herkenham '78, JCN177:589";
+            citationMap["Herk79"] = "Herkenham '79, JCN183:487";
+            citationMap["Herk80"] = "Herkenham '80, Sci207:532";
+            citationMap["Herken84"] = "Herkenham et al '84, Nsci11:561";
+            citationMap["Herr91"] = "Herrero et al '91, BR543:201";
+            citationMap["Hic76"] = "Hickey & Spear '76, ExpBR24:487";
+            citationMap["Hicks&Huert91"] = "Hicks & Huerta '91, BR568:325";
+            citationMap["Hin&Wat83"] = "Hinrichsen & Watson '83, BrainBehEvol22:153";
+            citationMap["Hisa85"] = "Hisa et al '85, NsciLett55:185";
+            citationMap["Hjo&Lau77"] = "Hjorth-Simonsen & Laurberg '77, JCN174,591";
+            citationMap["Hjor71"] = "Hjorth-Simonsen '71, JCN142:417";
+            citationMap["Hjor72"] = "Hjorth-Simonsen '72, JCN146:219";
+            citationMap["Hjor73"] = "Hjorth-Simonsen '73, JCN147:145";
+            citationMap["Hok74"] = "Hokfelt et al '74, JPharmacol25:108";
+            citationMap["Hols91"] = "Holstege '91, JNsci11:159";
+            citationMap["Holsteg&Bongers91"] = "Holstege & Bongers '91, BR566:308";
+            citationMap["Hoogland85"] = "Hoogland et al '85, NsciLett56:323";
+            citationMap["Hoov79"] = "Hoover & Jacobowitz '79, BR170:113";
+            citationMap["Hop&Nies76"] = "Hopkins & Niessen '76, NsciLett2:253";
+            citationMap["Hop76"] = "Hopkins & Niessen '76, NsciLett2:253";
+            citationMap["Horikawa88"] = "Horikowa et al '88, NsciRes6:31";
+            citationMap["Hoso89"] = "Hosoya et al '89, ExpBR75:40";
+            citationMap["Hosoya83"] = "Hosoya et al '83, BR266:329";
+            citationMap["Hosoya84"] = "Hosoya et al '84, BR290:141";
+            citationMap["Hosoya85"] = "Hosoya '85, BR344:338";
+            citationMap["Hosoya87"] = "Hosoya et al '87, ExpBR66:500";
+            citationMap["Hosoya90"] = "Hosoya et al '90, ExpBR82:513";
+            citationMap["Housley87"] = "Housley et al '87, Nsci22:237";
+            citationMap["Howell91"] = "Howell et al '91, BR562:181";
+            citationMap["Hryc82b"] = "Hrycyshyn et al '82b, Can.Fed.Biol.Soc25:324";
+            citationMap["Hryc89"] = "Hrycyshyn et al '89, JCN 284:48";
+            citationMap["HS&Mikk92"] = "Hay-Schmidt & Mikkelson '92, BR576:343";
+            citationMap["Hu91"] = "Hurley et al '91, JCN308:249-276";
+            citationMap["Huang90"] = "Huang et al '90, BR536:327";
+            citationMap["Hub43"] = "Huber & Crosby '43, JCN78:133";
+            citationMap["Huer83"] = "Huerta et al '83, JCN220:147";
+            citationMap["Hug77"] = "Hughes '77, JCN175,311";
+            citationMap["Huitinga85"] = "Huitinga et al '85, NsciLett62:311";
+            citationMap["Ibat89"] = "Ibata et al '89, NsciLett97:1";
+            citationMap["Ikai92"] = "Ikai et al '92, Nsci51:719";
+            citationMap["Imai86"] = "Imai et al '86, JCN243:363";
+            citationMap["Imamura86"] = "Imamura et al '86, NsciLett70:46";
+            citationMap["Ingham85"] = "Ingham et al '85, JCN239:176";
+            citationMap["Ingham88"] = "Ingham et al '88, JCN273:263";
+            citationMap["Inig90"] = "Iniguez et al '90, BRDevBR57:43";
+            citationMap["Iovino88"] = "Iovino et al '88, BR447:178";
+            citationMap["Irl&Mar82"] = "Irle & Markowitsch '82, ExpBR47:79";
+            citationMap["Irle84"] = "Irle et al '84, JCN228:509";
+            citationMap["Ishii89"] = "Ishii '89, OsakaDaigakuShigakuZasshi34:193";
+            citationMap["IsoAk&Kom87"] = "Isokawa-Akesson & Komisaruk '87, ExpBR65:385";
+            citationMap["It82a"] = "Itaya & van Hoesen '82a, BR233:45";
+            citationMap["Ita81"] = "Itaya et al '81, BR226:33";
+            citationMap["Ita82b"] = "Itaya & Van Hoesen '82b, BR236:199";
+            citationMap["Ito82"] = "Ito et al '82, BR231:427";
+            citationMap["Ivy81"] = "Ivy & Killackey '81, JCN195:367";
+            citationMap["Ja89"] = "Jay et al '89, BrRes505:337-340";
+            citationMap["Ja91"] = "Jay & Witter '91, JCN313:574-586";
+            citationMap["Jac65"] = "Jacobson '65, JCN124:131";
+            citationMap["Jac70"] = "Jacobson '70, ExpNeurol154:349";
+            citationMap["Jac75"] = "Jacobson & Trojanowski '75, BR85:385";
+            citationMap["Jack&Cross83"] = "Jackson & Crossman '83, Nsci10:725";
+            citationMap["Jacq&Rhoa90"] = "Jaquin & Rhoades '90, SomatMotRes7:265:88";
+            citationMap["Jacq&Rhoad83"] = "Jacquin & Rhoades '83, BR269:137";
+            citationMap["Jacq90"] = "Jacquin et al '90, SomMotRes7:399";
+            citationMap["Jaqu89"] = "Jaquin et al '89, JCN282:45";
+            citationMap["Jastreboff84"] = "Jastreboff et al '84, ProcNatlAcadSciUSA81:5250";
+            citationMap["Jen&Au86"] = "Jen & Au '86, BR379:385";
+            citationMap["Jen&Kill87"] = "Jensen & Killackey '87, JNsci7:3529";
+            citationMap["Jen78"] = "Jen et al '78, ExpBR44:34";
+            citationMap["Jhaman91"] = "Jhamandas et al '91, JCN308:42";
+            citationMap["Jocabow&Creed83"] = "Jacobowitz & Creed '83, BRBull10:365";
+            citationMap["John&Burk92"] = "Johnson & Burkhalter '92, ExpBR89:20";
+            citationMap["John&Burk94"] = "Johnson & Burkhalter'94, EurJNSci6:272";
+            citationMap["Johnson88"] = "Johnson et al '88, BR462:301";
+            citationMap["Jon74"] = "Jones & Leavitt '74, JCN154:349";
+            citationMap["Jones&Beaudet87"] = "Jones & Beaudet '87, ExpBR65:437";
+            citationMap["Jones&Light92"] = "Jones & Light '92, JCN322:599";
+            citationMap["Jones&Yang85"] = "Jones & Yang '85, 242:56";
+            citationMap["Jones86"] = "Jones et al '86, Nsci18:901";
+            citationMap["Jos&Mic88"] = "Joseph & Michael '88, Peptides9:193";
+            citationMap["Jourdain89"] = "Jourdain et al '89, BR505:55";
+            citationMap["Ju86"] = "Ju et al '86, Nsci19:803";
+            citationMap["Kal85"] = "Kalen et al '85, BR360:285";
+            citationMap["Kalen88"] = "Kalen et al '88, ExpBR73:69";
+            citationMap["Kaliv&Mill84"] = "Kalivas & Miller '84, BR300:157";
+            citationMap["Kan&Fri93"] = "Kandleer & Friauf '93, JCN328:161";
+            citationMap["Kan&Her91"] = "Kandler & Herbert '91, BR562:230";
+            citationMap["Kawa&Masu93"] = "Kawano & Masuko '93, BR600:74";
+            citationMap["Kawai88"] = "Kawai et al '88, BR459:369";
+            citationMap["Kawan&Masuk92"] = "Kawano & Masuko '92, NsciLett148:211";
+            citationMap["Kazakov92"] = "Kazakov et al '92, Neirofiziologiia 24:87";
+            citationMap["Kazakov93"] = "Kazakov et al '93, Nsci56:157";
+            citationMap["Kelley&Stinus84"] = "Kelley & Stinus '84, ExpBR54:499";
+            citationMap["Kempl&Webst86"] = "Kemplay & Webster '86, Nsci17:769";
+            citationMap["Kenned87"] = "Kennedy '87, NsciLett74:262";
+            citationMap["Ketter90"] = "Ketterer et al '90, ActaOtolaryngolStockh110:31";
+            citationMap["Kevetter&Willis83"] = "Kevetter & Willis '83, JCN215:453";
+            citationMap["Kill73"] = "Killackey '73, BR5:326";
+            citationMap["Kill89"] = "Killackey et al '89, JCN282:428";
+            citationMap["Kim92"] = "Kim et al '92, JCN321:555";
+            citationMap["Kit82"] = "Kita & Ooomura '82";
+            citationMap["Kita&Kitai87"] = "Kita & Kitai '87, JCN260435";
+            citationMap["Kita&Kitai90"] = "Kita & Kitai '90, JCN298:40";
+            citationMap["Kita&Oom82"] = "Kita & Oomura '82, BRBull8:249";
+            citationMap["Kitm&Yama89"] = "Kitmura & Yamada '89, BrBehavEvol34:133";
+            citationMap["Kiz76"] = "Kizer et al '76, BR108:363";
+            citationMap["Klein&Rhaodes85"] = "Klein & Rhaodes '85, JCN232:55";
+            citationMap["Klit92"] = "Klitenick et al '92, Nsci50:371";
+            citationMap["Knuepfer84"] = "Knuepfer et al '84, AmJPhysiol84";
+            citationMap["Kobas&Adach88"] = "Kobashi & Adachi '88, BRBull20:487";
+            citationMap["Kod&VdKooy83"] = "Koda & Van-der-Kooy '83, NsciLett36:1";
+            citationMap["KoegMull93"] = "Koegler-Mully et al '93, JNendocrinol5:95";
+            citationMap["Koh85"] = "Kohler '85, JCN236:504";
+            citationMap["Koh86"] = "Kohler '86, JCN246:149";
+            citationMap["Koh91"] = "Koh et al '91, BRBull27:675";
+            citationMap["Kohl&Swan84"] = "Kohler & Swanson '84, NsciLett49:39";
+            citationMap["Kohler84"] = "Kohler '84, NsciLett45:285";
+            citationMap["Kohler85b"] = "Kohler '85, NsciLett56:13";
+            citationMap["Kohler88"] = "Kohler '88, JCN271:208";
+            citationMap["Kohno84"] = "Kohno et al '84, BR308:309";
+            citationMap["Kolb87"] = "Kolb & Walkey '87, BehavBR23:127";
+            citationMap["Kora90"] = "Koralek et al '90, JCN299:133";
+            citationMap["Koralek88"] = "Koralek et al '88, BR463:346";
+            citationMap["Kornhuber84"] = "Kornhuber et al '84, BR322:124";
+            citationMap["Korp89"] = "Korp et al '89, VisNsci2:275";
+            citationMap["Korte92"] = "Korte et al '92, JAuonNerveSys41:157";
+            citationMap["Kos71"] = "Kostovic '71, BR31:202";
+            citationMap["Kos81"] = "Kosel et al '81, JCN198:467";
+            citationMap["Kos82"] = "Kosel et al '82, BR204:201";
+            citationMap["Kos83"] = "Kosel et al '83, BR269:347";
+            citationMap["Kosar86"] = "Kosar '86, BR379:342";
+            citationMap["Kosin88"] = "Kosinski et al '88, NsciLett85:40";
+            citationMap["Kosinski88b"] = "Kosinski et al '88, ExpBR71:541";
+            citationMap["Krammer86"] = "Krammer et al '86, LaryngolRhinolOtolStiuttg65:617";
+            citationMap["Kre74"] = "Kretteck & Price '74, BR71:150";
+            citationMap["Kre77a"] = "Krettek & Price '77a, JCN171:157";
+            citationMap["Kre77b"] = "Krettek & Price '77b, JCN172:687";
+            citationMap["Kre77c"] = "Krettek & Price '77c, JCN172:723";
+            citationMap["Kre78a"] = "Krettek & Price '78a, JCN178:225";
+            citationMap["Kre78b"] = "Krettek & Price '78a, JCN178:255";
+            citationMap["Kreig79"] = "Krieger et al '79, JCN183:785";
+            citationMap["Krom80"] = "Kromer & Moore '80, Nsci5:255";
+            citationMap["Kruk93"] = "Krukoff et al '93, BRBull30:163";
+            citationMap["Krukoff92"] = "Krukoff et al '92, Nsci47:175";
+            citationMap["Krush88"] = "Krushel & Van der Kooy '88, JCN 270:39-54, 62-3";
+            citationMap["Kunz&Schnyd84"] = "Kunzle & Schnyder '84, ExpBR56:509";
+            citationMap["Kuo&Chang92"] = "Kuo & Chang '92, JCN321:626";
+            citationMap["Kurokaw90"] = "Kurokawa et al '90, NsciLett120:259";
+            citationMap["Kwiat&BaS92"] = "Kwiat & Basbaum '92, SomatMotRes9:157";
+            citationMap["Lamour84"] = "Lamour et al '84, Nsci12:395";
+            citationMap["Lanca&vdKooy85"] = "Lanca & van-der-Kooy '85, Nsci14:1117";
+            citationMap["Larsen91"] = "Larsen et al '91, JCN306:462";
+            citationMap["Las34a"] = "Lashley '34a";
+            citationMap["Las34b"] = "Lashley '34b";
+            citationMap["Lash34"] = "Lashely '34";
+            citationMap["Lash41"] = "Lashley '41";
+            citationMap["Lau81"] = "Laurberg & Sorenson '81,BR212:287";
+            citationMap["Lawes&Payne86"] = "Lawes & Payne '86, JNsciMeth16:175";
+            citationMap["Leanza86"] = "Leanza et al '86, BollSocItalBiolSper62:1389";
+            citationMap["Leanza86b"] = "Leanza et al '86, BollSocItalBiolSper62:785";
+            citationMap["Leanza86c"] = "Leanza et al '86, BollSocItalBiolSper62:777";
+            citationMap["Lech93"] = "Lechner et al '93, BR603:47";
+            citationMap["LeD&Farb91"] = "LeDoux & Farb '91, NsciLett134:145";
+            citationMap["LeD91"] = "LeDoux et al '91, NSciLett134:139";
+            citationMap["LeDoux84"] = "LeDoux et al '84, JNsci4:683";
+            citationMap["LeDoux85"] = "LeDoux et al '85, JCN242:182";
+            citationMap["LeDoux87"] = "LeDoux et al '87, JCN264:123";
+            citationMap["Lee&Mihail90"] = "Lee & Mihailoff '90, Nsci39:561";
+            citationMap["Lee88"] = "Lee et al '88, JCN275:469";
+            citationMap["Lee89"] = "Lee et al '89, Nsci28:725";
+            citationMap["Legg79"] = "Legg '79, BR170:349";
+            citationMap["Leic&GRz87"] = "Leichnetz & Gonzalo-Ruiz '87, ExpBR68:355";
+            citationMap["Leichnet87"] = "Leichnetz et al '87, JCN263:387";
+            citationMap["Lemann&Saper85"] = "Lemann & Saper '85, BR334:339";
+            citationMap["Len93"] = "Lennard et al '93, JNendocrinol5:175";
+            citationMap["Leo69"] = "Leonard '69, BR12:321";
+            citationMap["Leong80"] = "Leong '80, JNeurolSci45:87";
+            citationMap["Leong84"] = "Leong et al '84, JCN228:1";
+            citationMap["Leranth92"] = "Leranth et al '92, BR583:1";
+            citationMap["Levine91"] = "Levine et al '91, JCN306:344";
+            citationMap["Levine94"] = "Levine et al '94, JCN341:214";
+            citationMap["Levy87"] = "Levy et al '87, NSciLett74:7";
+            citationMap["Li86"] = "Li et al '86, BRBull17:529";
+            citationMap["Li89"] = "Li et al '89, NsciLett98:276";
+            citationMap["Li90"] = "Li et al '90, NsciLett117:285";
+            citationMap["Li90b"] = "Li et al '90, NsciLet120:124";
+            citationMap["Li90c"] = "Li et al '90, SomatoMotRes7:315";
+            citationMap["Li91"] = "Li et al '91, NsciLett134:33";
+            citationMap["Li92"] = "Li et al '92, NsciLett134:175";
+            citationMap["Li93"] = "Li et al 93, JCN333:118";
+            citationMap["Li93b"] = "Li et al '93, Nsci54:431";
+            citationMap["Li93c"] = "Li et al '93, Nsci152:29";
+            citationMap["Liang91"] = "Liang et al '91, JCN311:356";
+            citationMap["Lid80"] = "Lidov et al '80, Nsci5:207";
+            citationMap["Lieber85"] = "Lieberman et al '85, NsciLett56:235";
+            citationMap["Lima&Coim91"] = "Lima & Coimbra '91, NsciLett132:16";
+            citationMap["Lima91"] = "Lima et al '91, Nsci45:137";
+            citationMap["Lin&Per82"] = "Linden & Perry '82, Nsci7:2813";
+            citationMap["Lin76"] = "Lin et al '76, AnatRec186:451 {Hamster]";
+            citationMap["Lind&Swan84"] = "Lind & Swanson '84, BR321:217";
+            citationMap["Lind74"] = "Lindvall et al '74BR81:325";
+            citationMap["Lind78"] = "Lindvall & Bjorkland '78, Handbook of psycho-pharmacology9:139";
+            citationMap["Lind83a"] = "Linden & Perrry '83a, BR272:145";
+            citationMap["Lind83b"] = "Linden & Perry '83b, :JCN218:208";
+            citationMap["Lind85"] = "Lind et al '85, BRBull15:79";
+            citationMap["Lind86"] = "Lind '86, BR384:250";
+            citationMap["Liu83"] = "Liu '83, BR264:118";
+            citationMap["Liu84"] = "Liu et al '84, BR310:123";
+            citationMap["Liu86"] = "Liu et al '86, BR365:145";
+            citationMap["Loew79"] = "Loewy et al '79, BR174:309";
+            citationMap["Loew81"] = "Loewy et al '81, BRRev3:63";
+            citationMap["Logh&Fall84"] = "Loghlin & Fallon '84, Nsci11:425";
+            citationMap["Loop&vdKooy85"] = "Loopuijt & van der Kooy '85, BR348:86";
+            citationMap["Los&Sem93"] = "Losier & Semba '93, BR604:41";
+            citationMap["Lough&Fall83"] = "Loughlin & Fallon '83, BR:262:334";
+            citationMap["Lough&Fall84"] = "Loughlin & Fallon '83, Nsci11:425";
+            citationMap["Loughlin86"] = "Loughlin et al '86, Nsci18:291";
+            citationMap["Lov&Rob83"] = "Lovick & Robinson '83, ExpBR50:299";
+            citationMap["Lu&Lin93"] = "Lu & Lin '93, SomatMotRes10:1";
+            citationMap["Lui92"] = "Lui et al '92, BRBull28:423";
+            citationMap["Luiten85"] = "Luiten et al '85, NsciLett57:137";
+            citationMap["Luiten87"] = "Luiten et al '87, BR413:229";
+            citationMap["Lun&Lun73"] = "Lund & Lund '73, JCN169:133";
+            citationMap["Lun66"] = "Lund '66, JAnat(Lond)100:51";
+            citationMap["Lun71"] = "Lund & Lund '71, Vision.Res.Suppl3:281";
+            citationMap["Lun74"] = "Lund et al '74, JCN158:383";
+            citationMap["Luo91"] = "Luo et al '91, JCN303:286";
+            citationMap["Luo92"] = "Luo '92, BR578:342";
+            citationMap["Lus83"] = "Luskin & Price '83, JCN216:264";
+            citationMap["Luth77"] = "Luth et al '77, Acta.Histochem60:91";
+            citationMap["Lynn91"] = "Lynn et al '91, JCN311:271";
+            citationMap["Lyons&Grzan88"] = "Lyons & Grzanna '88, Nsci26:681";
+            citationMap["Ma&Pesch88"] = "Ma & Peschanski '88, SomatosRes5:247";
+            citationMap["Ma83"] = "Markowitsch & Guldin '83, BRBull10:805";
+            citationMap["Ma91"] = "Ma et al '91, NsciLett134:21";
+            citationMap["Magni&Carobi83"] = "Magni & Carobi '83, JAutonNervSys8:237";
+            citationMap["Magnus87"] = "Magnusson et al '87, SomatosensRes4:177";
+            citationMap["Magoul93"] = "Magoul et al '93, Peptides14:275";
+            citationMap["Mai&Jung77"] = "Mai & Junger '77, CellTisRes183:221";
+            citationMap["Mai78"] = "Mai '79, JHirnforsch:19:213";
+            citationMap["Mai79"] = "Mai '79, VerhAnaGes73:1147";
+            citationMap["Mai79b"] = "Mai '79, ExpBR34:373";
+            citationMap["Mai82"] = "Mai & Teckhaus pg42 in Aschoff et al '82: \"Vertebrate Circadian Systems\"";
+            citationMap["Maisk&Doros91"] = "Maisky  & Doroshenko '91, JAutonNervSys34:119";
+            citationMap["Malac89"] = "Malach '89, JNsci9:3741";
+            citationMap["Mamoun91"] = "Mamounas et al '91, JCN314:558";
+            citationMap["Manaker92"] = "Manaker et al '92, JCN322:68";
+            citationMap["ManStJ&Trac87"] = "Mantle-St-John & Tracey '87, JCN255:259";
+            citationMap["Mantyh&Hunt84"] = "Mantyh & Hunt '84, BR29:49";
+            citationMap["Marani87"] = "Marani et al '87, ProgClinBiolRes227A:199";
+            citationMap["Marchand&Hagino83"] = "Marchand & Hagino '83, Nsci9:95";
+            citationMap["Marf&DToro87"] = "Marfurt & Del-Toro '87, JCN261:450";
+            citationMap["Marf&Rajc91"] = "Marfurt & Rajchert '91, JCN303:489";
+            citationMap["Mart81"] = "Martin & Sefton '81, Proc.Aust.Physiol.Pharm.Soc12:98P";
+            citationMap["Mart83"] = "Martin et al '83, NsciLett41:219";
+            citationMap["Mart86"] = "Martin '86, ExpBR62:77";
+            citationMap["Martin85"] = "Martin et al '85, ExpBR58:154";
+            citationMap["Mas81"] = "Mason & Groos '81, NsciLett25:107";
+            citationMap["Masson91"] = "Masson et al '91, JCN307:120";
+            citationMap["Matesz81"] = "Matesz '81, NsciLet27:13";
+            citationMap["Matsus91"] = "Matsushita '91, NsciResNY12:201";
+            citationMap["Matsuy&Kawa85"] = "Matsuyama & Kawamura '85, NsciRes2:335";
+            citationMap["Matsuzaki93"] = "Matsuzaki et al '93, Nsci55:403";
+            citationMap["Mayo84"] = "Mayo et al '84, NsciLett47:149";
+            citationMap["McD91b"] = "McDonald '91, NSci44:1";
+            citationMap["McDon&Jack87"] = "McDonald & Jackson '87, JCN262:59";
+            citationMap["McDon87"] = "McDonald '87, JCN262:46";
+            citationMap["McDon91"] = "McDonald '91, Nsci44:15";
+            citationMap["McDon92"] = "McDonald '92, BRBull28:179";
+            citationMap["McDonald88"] = "McDonald '88, NsciLett85:285";
+            citationMap["McGeorge&Faull87"] = "McGeorge & Faull '87, BR423:318";
+            citationMap["McKell&Loew82"] = "Mekellar & Loewy '82, BR241:11";
+            citationMap["McKinney83"] = "McKinney et al '83, JCN217:103";
+            citationMap["McL&Ship91"] = "McLean & Shipley '91, JCN304:467";
+            citationMap["McLean90"] = "McLean et al '90, JCN285:339";
+            citationMap["Meh&Kohn85"] = "Mehler & Kohn in prep in '85";
+            citationMap["Meh68"] = "Mehler '68, AnatRec160:485";
+            citationMap["Meh69"] = "Mehler '69, Ann.N.Y.Acad.Sci 167:424";
+            citationMap["Meh77"] = "Mehler '77Anat.Rec187:653";
+            citationMap["Meh83"] = "Mehler '83, BrainBehavEvol23:63";
+            citationMap["Meh85"] = "Mehler85, Chap9 of Paxinos 85 \"The Rat Nervous System\"";
+            citationMap["Mei&Sie77"] = "Meibach & Siegel '77, BR134:1-12";
+            citationMap["Mei77b"] = "Meibach & Siegel '77b, BR124:197";
+            citationMap["Mei77d"] = "Meibach & Siegel '77d, ExpNeurol57:264";
+            citationMap["Menet83"] = "Menetrey et al '83, JCN220:439";
+            citationMap["Menetrey&Basbaum87"] = "Menetrey & Basbaum '87, JCN255:439";
+            citationMap["Menetrey87"] = "Menetreyet al '87, NsciLett73:48";
+            citationMap["Merc90"] = "Mercier et al '90, ProcNatlAcadSci87:4388";
+            citationMap["Merchent91"] = "Merchenthaler '91, BR544:177";
+            citationMap["Mere92"] = "Meredith et al '92, Nsci50:149";
+            citationMap["Meyer86"] = "Meyer et al '86, BR398:207";
+            citationMap["Mi84"] = "Miller & Vogt '84, JCN226:184-202";
+            citationMap["Mihail85"] = "Mihailoff et al '85, JCN237:251";
+            citationMap["Mihail89"] = "Mihailoff et al '89, JCN282:617";
+            citationMap["Mikk&Moll90"] = "Mikkelson & Moller '90, BR520:342";
+            citationMap["Mikk90"] = "Mikkelson '90, NsciLett116:58";
+            citationMap["Mikk92"] = "Mikkelsen et al '92, BR597:200";
+            citationMap["Mikk92b"] = "Mikkelson '92, Nsci48:953";
+            citationMap["Mill83"] = "Millhouse & de Olmos '83, Nsci10:1269";
+            citationMap["Miller87"] = "Miller '87, ExpBR67:339";
+            citationMap["Millhorn87"] = "Millhorn et al '87, BR424:99";
+            citationMap["Milner&Amaral84"] = "Milner & Amaral '84, ExpBR55:579";
+            citationMap["Min85"] = "Minciacchi et al '85, Nsci16:557";
+            citationMap["Mink91"] = "Minkels et al '91, BR547:13";
+            citationMap["Mo93"] = "Montero '93, ExpBR94:1";
+            citationMap["Moga89"] = "Moga et al '89, JCN283:315";
+            citationMap["Mogenson83"] = "Mogenson et al '83, JNsci3:189";
+            citationMap["Mogenson85"] = "Mogenson et al '85, BR334:65";
+            citationMap["Molinari85"] = "Molinari et al '85; ExpBR57:305";
+            citationMap["Mon.et.al68"] = "Montero et al '68, JNphysiol31:221";
+            citationMap["Mon68"] = "Montero & Guillery '68, JCN134:211";
+            citationMap["Mon73"] = "Montero et al '73, BR53:202";
+            citationMap["Mon81"] = "Montero & Scott '81, Nsci6:2561";
+            citationMap["Mona&Bree91"] = "Monahan & Breedlove '91, JCN307:370";
+            citationMap["Moo72"] = "Moore & Lenn '72, JCN146:1";
+            citationMap["Moo78"] = "Moore et al '78, JCN180:417";
+            citationMap["Moor78"] = "Moore '78, JCN177:665";
+            citationMap["Morg&Hust90"] = "Morgan & Huston '90, BehavBR38:155";
+            citationMap["Morgan86"] = "Morgan et al '86, Nsci17:609";
+            citationMap["Morii&Hatt91"] = "Moriizumi & Hattori '91, ExpBR87:223";
+            citationMap["Morii&Hattori91b"] = "Moriizumi & Hattori '91, BRBull27:141";
+            citationMap["Morii91"] = "Moriizumi et al '91, NsciLett132:69";
+            citationMap["Morii92"] = "Moriizumi & Hattori '92, ExpBR90:175";
+            citationMap["Morr81"] = "Morrison et al '81, Nsci6:139";
+            citationMap["Morris91"] = "Morrision et al '91, BR562:126";
+            citationMap["Morys&Slon86"] = "Morys & Sloniewski '86, FoliaMorpholWarsz45:175";
+            citationMap["Morys87"] = "Morys et al '87, FoliaMorpholWarsz46:67";
+            citationMap["Mra82"] = "Mraovitch et al '82, SocNsciAb8:77";
+            citationMap["MS83"] = "Mackey-Sim et al '83, JCN213:24";
+            citationMap["Murabe83"] = "Murabe et al '83, AnatEmbryolBerl168:151";
+            citationMap["Murr82"] = "Murray & Coulter '82, BR243:201";
+            citationMap["Naf67"] = "Nafstead '67, ZZelforsch76:532";
+            citationMap["Naga84"] = "Nagata & Hayashi '84, JCN 227:582";
+            citationMap["Nagash87"] = "Nagashima et al '87, NsciLett77:103";
+            citationMap["Nagata86"] = "Nagata '86, BR 376:57";
+            citationMap["Nau47"] = "Nauta & van Straaten '47";
+            citationMap["Nau54"] = "Nauta & Butcher '54, JCN100:257";
+            citationMap["Naus84"] = "Naus et al '84, BR309:1";
+            citationMap["Naut54"] = "Nauta & Butcher '54";
+            citationMap["NAut78"] = "Nauta et al '78, Nsci3:345";
+            citationMap["Neaf86"] = "Neafsy et al '86, BR377:561";
+            citationMap["Neaf93"] = "Neafsy et al '93, Chap 6 In Neurobiology of Cingulate Cortex & Limbic Thalamus";
+            citationMap["Neuh&Zenk89"] = "Neuheuber & Zenker '89, JCN280:231";
+            citationMap["Neuhuber86"] = "Neuhuber et al '86, AnatEmbryolBerl174:123";
+            citationMap["Newm&Gins92"] = "Newman & Ginsberg '92, BBehavEvol39:24, errata BBehavEvol39:194";
+            citationMap["Newman85"] = "Newman '85, JHirnforsch26:385";
+            citationMap["Newman89"] = "Newman et al '89, BrBehavEvol34:223";
+            citationMap["Nicollelis92"] = "Nicolelis et al '92, BR577:134";
+            citationMap["Nit81a"] = "Nitecka et al '81a, NsciLett26:1";
+            citationMap["Nit81b"] = "Nitecka et al '81b; JHirn22:3";
+            citationMap["Nor76"] = "Norgren & Grill '76, SocNsciAb2:124";
+            citationMap["Nosaka84"] = "Nosaka '84, ExpNeurol85:493";
+            citationMap["Nosjean90"] = "Nosjean et al '90, NsciLett114:22";
+            citationMap["Nothias88"] = "Nothias et al '88, BR447:169";
+            citationMap["NunAbad90"] = "Nunez-Abades et al '90, JAnat172:1";
+            citationMap["Nyakas87"] = "Nyakas et al '87, BRBull18:533";
+            citationMap["Nyakas88"] = "Nyakas et al '88, BRBull21:285";
+            citationMap["Oades&Hall87"] = "Oades & Halliday '87, BR434:117 or BRRev12:117";
+            citationMap["Oconn82"] = "O'Connell et al '82, JAnat134:610";
+            citationMap["Oer&Wu89"] = "Oertel & Wu '89, JCN283:228";
+            citationMap["Oer90"] = "Oertel et al '90, JCN295:136";
+            citationMap["OgMeg92"] = "Ogawa-Meguro et al '92, ExpBR89:59";
+            citationMap["Oha80"] = "Ohara et al '80, BR197:503";
+            citationMap["Oha81"] = "Ohara & Lieberman '81, BR207:153";
+            citationMap["Ohar85"] = "Ohara & Lieberman '85, JNcytol14:365";
+            citationMap["OHearn84"] = "O'Hearn & Molliver '84, BRBull13:709";
+            citationMap["Oht92"] = "Ohtsuki et al '92, InvestOpthal33:2567";
+            citationMap["Ohta89"] = "Ohta et al '89, CompBiochemPhysiolA94:405";
+            citationMap["Ohtak92"] = "Ohtake '92, NsciResNY14:96";
+            citationMap["Ol72"] = "Olson et al '72, BR44:283";
+            citationMap["Olav79"] = "Olavarria '79, BR173:137";
+            citationMap["Olav81"] = "Olavarria & Montero '81, BR217:358";
+            citationMap["Olav82"] = "Olavarria & Van Sluyters '82, BR217:332";
+            citationMap["Oldf&Silver85"] = "Oldfield & Silverman '85, BRBull14:143";
+            citationMap["Oldfield85"] = "Oldfield et al '85, JCN231:221";
+            citationMap["Oleshko83"] = "Oleshko et al '83, Neirofiziologiia15:517";
+            citationMap["Olva&Mon84"] = "Olavarria & Montero '84, ExpBR54:240";
+            citationMap["Ono85"] = "Ono et al '85, NsciRes2:221";
+            citationMap["OSt68"] = "O'Steen & Vaughan '68, BR8:209";
+            citationMap["Ott&BA78"] = "Ottersen & Ben-Ari '78, NsciLett8:329";
+            citationMap["Ott80"] = "Ottersen '80, JCN194:267";
+            citationMap["Ott82"] = "Ottersen '82, JCN205:30";
+            citationMap["Pa91"] = "Paperna & Malach '91,JCN308:432-456";
+            citationMap["Paall91"] = "Paallysaho et al '91, NSciRes12:217";
+            citationMap["Paally90"] = "Paallysaho et al '90, NsciResNY8:153";
+            citationMap["Pak&Akop86"] = "Pakhomova & Akopian '86, Neirofiziologiia 18:469";
+            citationMap["Pakhomova&Akopian85"] = "Pakhomova & Akopian '85, Neirofiziologiia17:102";
+            citationMap["Par83"] = "Parnavelas & McDonald '83, \"Chemical Neuroanatomy\" pp505";
+            citationMap["Pas&ReSu76"] = "Pasquier & Reinoso-Suarez '76, BR108:165";
+            citationMap["Pas79"] = "Pasquier & Tremazzini '79, BRBull4:765";
+            citationMap["Pas82a"] = "Pasquier & Villar '82a, BR48:409";
+            citationMap["Pas82b"] = "Pasquier & Villar '82b, BR249:142";
+            citationMap["Pas82c"] = "Pasquier & Villar '82c, ExpBR48:409";
+            citationMap["Pat&Rob87"] = "Patrick & Robinson '87, JMorphol192:229";
+            citationMap["Patrick91"] = "Patrickson et al '91, BR539:169";
+            citationMap["Patson&Smith87"] = "Patrickson & Smith '87, ExpNeurol97:413";
+            citationMap["Payne83"] = "Payne '83, JCN213:233";
+            citationMap["Payne85"] = "Payne et al '85, Nsci15:403";
+            citationMap["Payne87"] = "Payne '87, Nsci23:211";
+            citationMap["Pearson83"] = "Pearson et al '83, BR261:327";
+            citationMap["Pechura&Liu86"] = "Pechura & Liu '86, BR374:357";
+            citationMap["Peder&Bens86"] = "Pederson & Benson '86, JCN252:555";
+            citationMap["Per80"] = "Perry '80, Nsci5:915";
+            citationMap["Per81"] = "Perry '81, Nsci6:931";
+            citationMap["Perce89"] = "Perceiavalle et al '89, Nsci29:109";
+            citationMap["Perr79"] = "Perry & Cowey '79, ExpBR35:97";
+            citationMap["Perr82"] = "Perry & Cowey 82, Nsci7:583";
+            citationMap["Peschan&Besson84"] = "Peschanski & Besson '84, NsciLett46:329";
+            citationMap["Peschan&Besson84b"] = "Peschanski & Besson'84, JCN224";
+            citationMap["Peschanski84"] = "Peschanski '84, Nsci12:465";
+            citationMap["Pet75"] = "Petrovicky '75, Morphologica41-48";
+            citationMap["Pet76"] = "Peters & Feldman '76, JNcyt5:63";
+            citationMap["Peterson89"] = "Peterson '89, AnatEmbryolBerl180:421";
+            citationMap["Petro83"] = "Petrovicky '83, Acta Univ Carol Med 29:283";
+            citationMap["Petrovicky83"] = "Petrovicky '83, JHirnforsch24:329";
+            citationMap["Petrovicky85"] = "Petrovicky '85, JHirnforsch26:539";
+            citationMap["Petrovicky85b"] = "Petrovicky '85, JHirnforsch26:531";
+            citationMap["Petrovicky88"] = "Petrovicky '88, JHirnforsch29:243";
+            citationMap["Phil&Pyc82"] = "Phillipson & Pycock '82, ExpBR45:89";
+            citationMap["Phill&Griff85"] = "Phillipson & Griffiths '85, Nsci16:275";
+            citationMap["Phill78"] = "Phillipson '78, NsciLett9:353";
+            citationMap["Phill79c"] = "Phillipson '79c, JCN187:117";
+            citationMap["Phill87"] = "Phillipson et al '87, BRBull18:621";
+            citationMap["Pick81"] = "Pickard & Silverman '81, JCN196:155 {Hamster}";
+            citationMap["Pid79"] = "Pidoux & Verlay '79, EncephClinNeurol46:715";
+            citationMap["Pieribone88"] = "Pieribone et al '88, NsciLett85:297";
+            citationMap["Pos80"] = "Post & Mai '80, JHirn21:199";
+            citationMap["Pri72"] = "Price & Webster '72, BR44:636";
+            citationMap["Price&Slot83"] = "Price & Slotnick '83, JCN215:63";
+            citationMap["Price&Stern83"] = "Price & Stern '83, BR269:352";
+            citationMap["Price91"] = "Price et al '91, JCN306:447";
+            citationMap["Pritzel83"] = "Pritzel et al '83, 10:385";
+            citationMap["Proud&Clark91"] = "Proudfit & Clark '91, ProgBR88:123";
+            citationMap["Quim91"] = "Quimet '91, BR562:85";
+            citationMap["Raapp&Arvid93"] = "Raappana & Arvidsson '93, JCN328:103";
+            citationMap["Rais66"] = "Raisman et al '66, Brain89:317";
+            citationMap["Rajak92"] = "Rajakumar et al '92, AnatEmbryolBerl185:25";
+            citationMap["Rajak93"] = "Rajakumar et al '93, JCN331:286";
+            citationMap["Ranski&LeDoux93"] = "Romanski & LeDoux '93, CerebCort3:499";
+            citationMap["Ranski&LeDoux93b"] = "Romanski & LeDoux '93, CerebCort3:515";
+            citationMap["Raos&Bent93"] = "Raos & Bentivogio '93, JCN332:145";
+            citationMap["Ray92"] = "Ray & Price '92, JCN323:167";
+            citationMap["Re82"] = "Reep & Winans '82, Mesocricetus.aurautus.Neursosci7:2609";
+            citationMap["Re84"] = "Reep et al '84, NSciLett44:247-252";
+            citationMap["Re87"] = "Reep et al '87,BrResBull19:203-221";
+            citationMap["Re90"] = "Reep et al '90,JCN294:262-280";
+            citationMap["Red87"] = "Redgrave et al '87, ExpBR68:147";
+            citationMap["Redgr87"] = "Redgrave et al '87, BR413:170";
+            citationMap["Redgr88"] = "Redgrave et al '88, ExpBR72:611";
+            citationMap["Redgr90"] = "Redgrave et al '90, Nsci37:571";
+            citationMap["Redgr92"] = "Redgrave et al '92, Nsci50:571";
+            citationMap["Redgr92b"] = "Redgrave et al '92, NSci46:391";
+            citationMap["Reep84b"] = "Reep '84, BrBehavEvol25:5";
+            citationMap["Rees&Cow83"] = "Reese & Cowey '83, Nsci10:1233";
+            citationMap["Rees&Jeff83"] = "Reese & Jeffrey '83, JNphysiol260:453";
+            citationMap["Rees84"] = "Reese '84, BR305:162";
+            citationMap["Rees88"] = "Reese '88, BR472:119";
+            citationMap["Reese&Cowey87"] = "Reese & Cowey '87, Nsci20:951";
+            citationMap["Reper87"] = "Reperant et al '87; CRAcadSciIII305:601";
+            citationMap["Reperant87"] = "Reperant et al '87, CRAcadSciIII305:601";
+            citationMap["Reuss&Moll86"] = "Reuss & Moller '86, CellTissRes244:691";
+            citationMap["Reyher88"] = "Reyher et al '88, BRBull20:549";
+            citationMap["Rhoa&Fish82"] = "Rhoades & Fish '82, DevBR4:356";
+            citationMap["Rhoa82"] = "Rhoades et al '82, JCN208:239";
+            citationMap["Rib75"] = "Ribak & Peters '75, BR92:341";
+            citationMap["Rib77"] = "Ribak '77, BR27:413";
+            citationMap["Ric&Koh78"] = "Ricardo & Koh '78, BR153:1";
+            citationMap["Rie85"] = "Rieck & Carey '85, JCN234:137";
+            citationMap["Rieck&Carey84"] = "Rieck & Carey '85, BR297:374";
+            citationMap["Rieck85"] = "Rieck & Carey '85, JCN234:137";
+            citationMap["Ril&Moo81"] = "Riley & Moore '81, BRBull6:437";
+            citationMap["Ril81"] = "Riley et al '81, Cell.Tiss.Res214:257";
+            citationMap["RivMel&Arv92"] = "Rivero-Melian & Arvidsson '92, ExpBR91:12";
+            citationMap["Rizvi91"] = "Rizvi et al '91, JCN303:121";
+            citationMap["Rizvi92"] = "Rizvi et al '92, JCN315:1";
+            citationMap["Ro89"] = "Ro89,";
+            citationMap["Rob82"] = "Roberts et al '82, Nsci7:99";
+            citationMap["Roberts84"] = "Roberts et al '84, Nsci11:35";
+            citationMap["Robin&Beart88"] = "Robinson & Beart '88, BRBull20:467";
+            citationMap["Robson80"] = "Robertson et al '80, NsciLett17:161";
+            citationMap["Robson83"] = "Robertson '83, BR258:91";
+            citationMap["Rod&Ciriell93"] = "Roder & Ciriello '93, JAutonNervSyst45:61";
+            citationMap["Roder&Ciriel93"] = "Roder & Ciriello '93, JCN332:105";
+            citationMap["Roel93"] = "Roeling et al '93, Nsci56:199";
+            citationMap["Rog&Arn89"] = "Roger & Arnault '89, JCN287:339";
+            citationMap["Rog&Cad84"] = "Roger & Cadusseau '84, JHirnforsch25:473";
+            citationMap["Rog&Cad85"] = "Roger & Cadusseau '85, JCN241:480";
+            citationMap["Rog&Cad87"] = "Roger & Cadusseau '87, Nsci21:573";
+            citationMap["Rokx88"] = "Rokx et al '88, ActaAnatBasel132:260";
+            citationMap["Roman85"] = "Romanowski et al '85, JAnat143:75";
+            citationMap["Rosen91"] = "Rosen et al  '91, BehavNsci";
+            citationMap["Ross84"] = "Ross et al '84, JCN228:168";
+            citationMap["Ross85"] = "Ross et al '85, JCN242:511";
+            citationMap["Rouill&Welk91"] = "Rouiller & Welker '91, HearRes56:179";
+            citationMap["Rouill91"] = "Rouiller et al '91, NsciLett125:93";
+            citationMap["Rouill93"] = "Rouiller et al '93, SomatosensMotRes10:269";
+            citationMap["Ru88"] = "Ruth et al '88, JCN270:506-516";
+            citationMap["Rub&Har82"] = "Rubertone & Haroian '82, Anat.Rec202:162A";
+            citationMap["Rub&Meh81"] = "Rubertone & Mehler '81, Anat.Rec199:219A";
+            citationMap["Rub83"] = "Rubertone et al '83, BR235:1";
+            citationMap["Rub83b"] = "Rubertone et al '83, BR263:137";
+            citationMap["Ruber90"] = "Rubertone et al '90, NsciLett119:79";
+            citationMap["Ruig&Voo90"] = "Ruigrok & Voogd '90, JCN298:315";
+            citationMap["Ruig92"] = "Ruigrok et al '92, JCN316:129";
+            citationMap["Ruit&Neaf90"] = "Ruit & Neafsy '90, ExpBR82:606";
+            citationMap["Russch&Price84"] = "Russchen & Price '84, NsciLett47:15";
+            citationMap["Ruther84"] = "Rutherford et al '84, JCN229:285";
+            citationMap["Ruttgers90"] = "Ruttgers et al '90, BR509:71";
+            citationMap["Rye84"] = "Rye et al '84, Nsci13:627";
+            citationMap["Rye87"] = "Rye et al '87, JCN259:483";
+            citationMap["Rye88"] = "Rye et al '88, JCN269:315";
+            citationMap["Ryo&Will85"] = "Ryugo & Willard '85, JCN242:381";
+            citationMap["Sa91"] = "Sanderson et al '91, ExpBR85:324";
+            citationMap["Sahib87"] = "Sahibzada et al '87, BR415:242";
+            citationMap["Sak81"] = "Sakanaka et al '81, BR221:231";
+            citationMap["Saka&Naka87"] = "Sakaguchi & Nakamura '87, Nsci20:221";
+            citationMap["Sakanaka86"] = "Sakanaka et al '86, BR382:213";
+            citationMap["Sald&Merc92"] = "Saldana & Merchan '92, JCN319:417";
+            citationMap["San84"] = "Sanderson et al '84, Proc.Aust.Physiol.Pharm.Soc15:190P";
+            citationMap["Sap&Loew80"] = "Saper & Loewy '80, BR197:291";
+            citationMap["Sap76"] = "Saper et al '76, JCN169:409";
+            citationMap["Sap79"] = "Saper et al '79, JCN183:689";
+            citationMap["Sap82"] = "Saper '82, JCN210:163";
+            citationMap["Sap82a"] = "Saper '82, JCN242:32";
+            citationMap["Sap84"] = "Saper '84, JCN222:313";
+            citationMap["Sap85"] = "Saper '85, JCN237:21";
+            citationMap["Saper&Levisohn83"] = "Saper & Levisohn '83, BR288:21";
+            citationMap["Saper82"] = "Saper '82, BR242:33";
+            citationMap["Sar83"] = "Sarter & Markowitsch '83, BRBull10:607";
+            citationMap["Sar84"] = "Sarter & Markowitz '84, JCN224:445";
+            citationMap["Sar85"] = "Sarter & Markowitsch '85, JCN236:283";
+            citationMap["Satoh&Fibig86"] = "Satoh & Fibiger '86, JCN253:277";
+            citationMap["Saw&Swa82"] = "Sawchenko & Swanson '82, BRRev4:275";
+            citationMap["Sawchenko83"] = "Sawchenko 'et a; '83, BR277:355";
+            citationMap["Sawchenko85"] = "Sawchenko et al '85, JCN241:138";
+            citationMap["Sca80"] = "Scatton et al '80, NsciLett18:125";
+            citationMap["Scal&Aran79"] = "Scalia & Arango'79, JCN186:271";
+            citationMap["Scal72"] = "Scalia '72, JCN 145:223";
+            citationMap["Scarnati87"] = "Scarnati et al '87, NsciLett79:11";
+            citationMap["Scarnati88"] = "Scarnati et al '88, JHirnforsch29:95";
+            citationMap["Sch73"] = "Schober & Brauer '73, JHirnforsch14:463";
+            citationMap["Sch75"] = "Schober '75, AnatAnz137:257";
+            citationMap["Sch76"] = "Schober et al '76, ZMikrosk-AnantForsch90:399";
+            citationMap["Sch77"] = "Schober & Winkelmann '77, JHirnforschung18:1";
+            citationMap["Sch81"] = "Schober '81, ZMikrosk-Anat.Forschung95:827";
+            citationMap["Scharoun84"] = "Scharoun et al '84, 13:573";
+            citationMap["Scheel88"] = "Scheel '88, AnatEmbryolBerl179:181";
+            citationMap["Schmidt93"] = "Schmidt et al '93, JCN330:147";
+            citationMap["Schnyd&Kun84"] = "Schnyder & Kunzle '84, ExpBR56:502";
+            citationMap["Schnyd84"] = "Schnyder & Kunzle '84, ExpBR56:502";
+            citationMap["Schober89"] = "Schober et al '89, JHirnforsch30:685";
+            citationMap["Schulz83"] = "Schulz et al '83, JHirnforsch24:535";
+            citationMap["Schum87"] = "Schumann '87, JHurnforsch28:585";
+            citationMap["SchwarzFuku84"] = "Schwanzel-Fukuda et al '84, JCN226:1";
+            citationMap["Schwerd&Sarv83"] = "Schwerdtfeger & Sarvey '83, JHirnforsch24:201";
+            citationMap["Schwerd90"] = "Schwerdtfeger et al '90, JCN292:163";
+            citationMap["Scott85"] = "Scott et al '85, JCN242:415";
+            citationMap["Se89"] = "Sesack et al '89,JCN290:213-242";
+            citationMap["Sef&Bru71"] = "Sefton & Bruce '71, VisResSuppl3:329";
+            citationMap["Sef84"] = "Sefton & Martin '84, ExpBR56:144";
+            citationMap["Seft81"] = "Sefton et al '81, BR215:1";
+            citationMap["Seg74"] = "Segal & Landis '74, BR78:1";
+            citationMap["Seg77"] = "Segal '77, ExpNeurol55:750-765";
+            citationMap["Seh&Dre85"] = "Sefton & Dreher '85, Chapter 6 in Paxinos' \"The Rat Nerous System\", Chap6";
+            citationMap["Seki&Zyo84"] = "Seki & Zyo '84, JCN229:242";
+            citationMap["Semb&Fibig92"] = "Semba & Fibiger '92, JCN323:387";
+            citationMap["Serf&Lind91"] = "Serfaty & Linden '91, BRDevBR60:9";
+            citationMap["Seroo87"] = "Seroogy et al '87, ExpBR68:277";
+            citationMap["Seroo89"] = "Seroogy et al '89, JCN279:397";
+            citationMap["Ses&Pic92"] = "Sesack & Pickel '92, JCN320:145";
+            citationMap["Sh-Lag"] = "Shammah-Lagnado et al '85, Nsci15:109";
+            citationMap["Sh-Lag83"] = "Shammah-Lagnado et al '83, Nsci9:391";
+            citationMap["Sh-Lag85"] = "Shammah-Lagnado et al '85, Nsci15:109";
+            citationMap["Sh-Lag87"] = "Shammah-Lagnado et al '87, Nsci20:961";
+            citationMap["Sham-Lag92"] = "Shammah-Lagnado et al '92, Nsci50:403";
+            citationMap["Sham80"] = "Shamboul '80, JCN192:519";
+            citationMap["Sham84"] = "Shameem et al '84, NsciLett49:247";
+            citationMap["Shap&Misel85"] = "Shapiro & Miselis '85, JCN234:344";
+            citationMap["Shen90"] = "Shen et al '90, JCN300:263";
+            citationMap["Shib&Kat93d"] = "Shibata & Kato '93, NsciRes17:63";
+            citationMap["Shib87"] = "Shibata '87, JCN264:205";
+            citationMap["Shib88"] = "Shibata '88, NsciLett90:6";
+            citationMap["Shib89"] = "Shibata '89, JCN285:436";
+            citationMap["Shib92"] = "Shibata '93, JCN337:431";
+            citationMap["Shib93"] = "Shibata & Kato '93, NsciRes17:63";
+            citationMap["Shibata84"] = "Shibata & Suzuki '84, BR296:345";
+            citationMap["Shibata86"] = "Shibata et al '86, JCN248:272";
+            citationMap["Shibita93b"] = "Shibata et al '93, JCN330:533";
+            citationMap["Shibita93c"] = "Shibata et al '93, JCN337:431";
+            citationMap["Shieh83"] = "Shieh et al '83, JCN214:79";
+            citationMap["Shiosaka85"] = "Shiosaka et al '85, BR338:371";
+            citationMap["Shipley85"] = "Shipley et al '85, BR329:294";
+            citationMap["Shiro&Nakam87"] = "Shirokawa & Nakamura '87, BRBull18:291";
+            citationMap["Shiromani90"] = "Shiromani et al '90, BR532:317";
+            citationMap["Shokunbi85"] = "Shokunbi et al '85, JCN239:216";
+            citationMap["Shokunbi86"] = "Shokunbi et al '86, JCN248:441";
+            citationMap["Sikes&Vogt87"] = "Sikes & Vogt '87, JCN256:538";
+            citationMap["Sikes77"] = "Sikes et al '77, Exp Neurol 57:895";
+            citationMap["Silv&Krug85"] = "Silverman & Kruger '85, BR361:383";
+            citationMap["Sim&Joe92"] = "Sim & Joseph '92, BRBull28:679";
+            citationMap["Sim&Jos91"] = "Sim & Joseph '91, JChemNeuranat97:109";
+            citationMap["Sim&Swa86"] = "Simerly & Swanson '86, JCN246:312";
+            citationMap["Sim&Swa88"] = "Simerly & Swanson '88, JCN270:209";
+            citationMap["Sim79a"] = "Simon et al '79a: JNeuralTrans44:77";
+            citationMap["Sim79b"] = "Simon et al '79b, BR178:17";
+            citationMap["Sim84b"] = "Simerly et al '84, BR324:185";
+            citationMap["Sir&Fen87"] = "Sirkin & Feng '87, JCN256:483";
+            citationMap["Skag&Bjork85"] = "Skagerberg & Bjorkland '85, NSci15:445";
+            citationMap["Skager&Lind85"] = "Skagerberg & Lindvall '85, BR342:340";
+            citationMap["Slomian92"] = "Slomianka '92, Nsci48:325";
+            citationMap["Slon&Pilg84"] = "Sloniewski & Pilgrim '84, NsciLett49:29";
+            citationMap["Slon85"] = "Sloniewski et al '85, NsciLett60:189";
+            citationMap["Slon86"] = "Sloniewski et al '86, JCN246:467";
+            citationMap["Smith&Bolam91"] = "Smith & Bolam '91, Nsci44:45";
+            citationMap["Smithson89"] = "Smithson et al '89, NSci31:277";
+            citationMap["Smithson92"] = "Smithson et al '92, BRBull29:209";
+            citationMap["Sob&Corb84"] = "Sobel & Corbett '84, NsciLett48:121";
+            citationMap["Sofro83"] = "Sofroniew et al '83; BR213:399";
+            citationMap["Sofro85"] = "Sofroniew et al '85; BR329:213";
+            citationMap["Solo&Nomo84"] = "Sologub & Nomokonova '84, Neirofizologiia 16:168";
+            citationMap["SP&CC70"] = "Sousa-Pinto & Castro-Correia '70, ExpBR11:515";
+            citationMap["Span&Grof89"] = "Spann & Grofova '89, JCN283:13";
+            citationMap["Span&Grof91"] = "Span & Grofova '91, JCN311:375";
+            citationMap["Spencer90"] = "Spencer et al '90, BR534:149";
+            citationMap["Spreaf93"] = "Spreafico et al '93, JCN336:481";
+            citationMap["Spreafico85"] = "Spreafico et al '85, SomatosensRes3:119";
+            citationMap["Spreafico87"] = "Spreafico et al '87, SomatosensRes4:359";
+            citationMap["Sri&Wys86"] = "Sripanidkulchai & Wyss '86,JCN254:143";
+            citationMap["Sri84"] = "Sripanidkulchai et al '84, JCN229:418";
+            citationMap["Sri87"] = "Sripanidkulchai & Wyss '87, BR406:255";
+            citationMap["Staines&Fibig84"] = "Staines & Fibiger '84, ExpBR56:217";
+            citationMap["Staines87"] = "Staines et al '87, Nsci23:571";
+            citationMap["Staines88"] = "Staines et al '88, BR45572";
+            citationMap["Stanley87"] = "Stanley et al '87, AmJAnat180:249";
+            citationMap["Ste&Sco76"] = "Steward & Scoville '76, JCN169:347";
+            citationMap["Ste76"] = "Steward '76, JCN167:285";
+            citationMap["Ste83"] = "Stein & Gaither '83, JNphysiol50:102";
+            citationMap["Steinin92"] = "Steininger et al '92, JCN321:515";
+            citationMap["Step81"] = "Stephan et al '81, Nsci6:2625";
+            citationMap["Stev82a"] = "Stevenson & Lund '82a, ExpBR45:95";
+            citationMap["Stev82b"] = "Stevenson & Lund '82b, JCN207:191";
+            citationMap["Stev82c"] = "Stevenson & Lund '82, BR45:95";
+            citationMap["Stewart&Peder87"] = "Stewart & Pedersen '87, BR411:248";
+            citationMap["Stewart85"] = "Stewart et al '85, BR358:404";
+            citationMap["Strat&Wirt90"] = "Stratford & Wirtshafter '90, BR511:173";
+            citationMap["Stues&Fish84"] = "Stuesse & Fish '84, JCN229:271";
+            citationMap["Su&Bentiv90"] = "Su & Bentivoglio '90, JCN297:582";
+            citationMap["Su88"] = "Sukekawa '88, JHirn1:83";
+            citationMap["Sug&Otan86"] = "Sugita & Otani '86, ExpNeurol94:174";
+            citationMap["Sug83"] = "Sugita '83, NsciLett43:143";
+            citationMap["Sugi&Hatto84"] = "Sugimoto & Hattori '84, Nsci11:931";
+            citationMap["Sugi&Hatto84b"] = "Sugimoto & Hattori '84, BR323:188";
+            citationMap["Sugimoto83"] = "Sugimoto et al '83, JCN214:209";
+            citationMap["Sugita85"] = "Sugita et al '85, NsciRes2:189";
+            citationMap["Sugita89"] = "Sugita et al '89, NsciRes7:199";
+            citationMap["Sugita89b"] = "Sugita et al '89, NsciRes7:87";
+            citationMap["Sukekawa88b"] = "Sukekawa '88, BrBehavEvol32:246";
+            citationMap["Sukh&Lapen89"] = "Sukhov & Lapenko '89, Neirofiziologiia21:168";
+            citationMap["Sun91"] = "Sun et al '91, BRBull27:651";
+            citationMap["Sw77"] = "Swanson & Cowan '77,JCN172:49-84";
+            citationMap["Sw81"] = "Swanson '81,BrRes217:150-154";
+            citationMap["Swa&Cow75"] = "Swanson & Cowan '75, JCN160:1";
+            citationMap["Swa&Cow75b"] = "Swanson & Cowan '75a, Science189:303";
+            citationMap["Swa&Cow77"] = "Swanson & Cowan '77, JCN172:49";
+            citationMap["Swa&Cow79"] = "Swanson & Cowan '79,JCN186:621";
+            citationMap["Swa.et.al81"] = "Swanson et al '81, JNsci1:548";
+            citationMap["Swa74"] = "Swanson et al '74, JCN156:143";
+            citationMap["Swa75"] = "Swanson & Hartman '75, JCN163:467";
+            citationMap["Swa78"] = "Swanson et al '78, JCN181:681";
+            citationMap["Swa81"] = "Swanson '81, BR217:150";
+            citationMap["Swa82"] = "Swanson '82, BRBull9:321";
+            citationMap["Swa_etal80"] = "Swanson et al '80, NsciLett17:307";
+            citationMap["Swanson87"] = "Swanson et al '87, BR405:108";
+            citationMap["Swe&Cas83a"] = "Swenson & Castro '83a, Am.J.Anat166:329";
+            citationMap["Swe&Cas83b"] = "Swenson & Castro '83b, Nsci8:259";
+            citationMap["Swe84"] = "Swenson et al '84, JCN222:301";
+            citationMap["Swe89"] = "Swenson et al '89, NsciRes7:43";
+            citationMap["Ta91"] = "Takagisdhi & Chiba '91, BrRes56:26-39";
+            citationMap["Tabuchi89"] = "Tabuchi et al '89, BR492,176";
+            citationMap["Tak&Hat86"] = "Takada & Hattori '86, BR380:331";
+            citationMap["Tak85"] = "Takahashi '85, JCN231:281";
+            citationMap["Taka&Hatt87"] = "Takada & Hattori '87, BR418:27";
+            citationMap["Taka&Hatt87b"] = "Takada & Hattori '87, BR418:129";
+            citationMap["Taka&Hatt87c"] = "Takada & Hattori '87, BRBull18:285";
+            citationMap["Taka&Hatt88"] = "Takada & Hattori '88, Nsci25:563";
+            citationMap["Taka87"] = "Takada et al '87, NsciLett79:257";
+            citationMap["Takada87"] = "Takada et al '87, BRBull18:139";
+            citationMap["Takada87c"] = "Takada et al '87, BR432:275";
+            citationMap["Takada87d"] = "Takada et al '87, BR436:129";
+            citationMap["Takada88b"] = "Takada et al '88, BR455:346";
+            citationMap["Takada93"] = "Takada '93, BRBull32:301";
+            citationMap["Takay&Miur91"] = "Takayama & Miura '91, NsciLett134:62";
+            citationMap["Take&Sakai86"] = "Takeuchi & Sakai '86, OkajimasFoliaAnatJpn63:93";
+            citationMap["Takemura86"] = "Takemura '86, OsakaDaigakuShigakuZaashi31:52";
+            citationMap["Takemura87"] = "Takemura et al '87, ExpNeurol96:540";
+            citationMap["Takemura91"] = "Takemura et al '91, ExpNeurol111:324";
+            citationMap["Takeu85"] = "Takeuchi et al '85, BRBull14:453";
+            citationMap["Takeuchi83"] = "Takeuchi et al '83, BR280:143";
+            citationMap["Takeuchi88"] = "Takeuchi et al '88, BRBull21:829";
+            citationMap["Tanak&Arnol93"] = "Tanaka & Arnold '93, ExpBR96:117";
+            citationMap["Tanaka&Seto88"] = "Tanaka & Seto '88, BR456:397";
+            citationMap["Tanaka85"] = "Tanaka et al '85, NsciRes3:79";
+            citationMap["Tanaka85b"] = "Tanaka et al '85, BR341:252";
+            citationMap["Taylor86"] = "Taylor et al '86, ExpBR62:131";
+            citationMap["Teh89"] = "Tehovnik et al '89, BehavBR35:153";
+            citationMap["Tera79"] = "Terasawa et al '79, BR173:405";
+            citationMap["TerHor&Luit87"] = "Ter-Horst & Luiten '87, BRBull18:191";
+            citationMap["TerHor91"] = "Ter-Horst et al '91, Nsci40:735";
+            citationMap["TerHorst&Luiten86"] = "Ter-Horst & Luiten '86, BRBull16:231";
+            citationMap["TerHorst91b"] = "Ter-Horst et al '91, NSci45:153";
+            citationMap["Terreb&Neaf87"] = "Terreberry & Neafsy '87, BRBull19:639";
+            citationMap["Teru&Fuji84"] = "Terubayashi & Fujisawa '84, JCN227:285";
+            citationMap["Thier73"] = "Thierry et al '73, Sci182:499";
+            citationMap["Thier83"] = "Thierry et al '83, ExpBR50:275";
+            citationMap["Thomas84"] = "Thomas et al '84, BR307:363";
+            citationMap["Thomp&Robert87b"] = "Thompson & Robertson '87, JCN265:175";
+            citationMap["Thomp87"] = "Thompson & Robertson '87, JCN265:189";
+            citationMap["Thor&Helk87"] = "Thor & Helke '87, JCN265:275";
+            citationMap["To84"] = "Torrealba et al '84, ExpBR56:543";
+            citationMap["Tog81"] = "Toga & Collins '81, JCN199:443";
+            citationMap["Tokun84"] = "Tokunaga et al '84, JHirnforsch25:461";
+            citationMap["Tomim87"] = "Tomimoto et al '87, BR425:248";
+            citationMap["Tor&Tur81"] = "Tork & Turner '81, NsciLett24:215";
+            citationMap["Tori86"] = "Torigoe et al '86, JCN243:88";
+            citationMap["Tori87b"] = "Torigoe et al '86, JCN243:71";
+            citationMap["Toth93"] = "Toth et al '93, JNsci13:3712";
+            citationMap["Totter&Hay87"] = "Totterdell & Hayes '87, JNcytol16:477";
+            citationMap["Touz90"] = "Touzani et al '90, NsciLett114:17";
+            citationMap["Touz93"] = "Touzani et al '93, NSci53:865";
+            citationMap["Travers&Norgren83"] = "Travers & Norgren '83, JCN220:280";
+            citationMap["Tribollet85"] = "Tribollet et al '85, Nsci15:135";
+            citationMap["Trouill93"] = "Trouillas '93, CanJNeurolSci20, Suppl3:S78";
+            citationMap["Tuc84"] = "Tucker & Saper '84, SocNsciAb10:606";
+            citationMap["Tucker&Saper85"] = "Tucker & Saper '85, BR360:159";
+            citationMap["Tucker87"] = "Tucker et al '87, JCN259:591";
+            citationMap["Tur&Zim84"] = "Turner & Zimmer '84, JCN227:540";
+            citationMap["Turl93"] = "Turlejski et al '93, NsciLett160:225";
+            citationMap["Turn&Herk91"] = "Turner & Herkenham '91, JCN313:295";
+            citationMap["Ud81"] = "Udin & Schneider '81, ExpBR43:261";
+            citationMap["Ullan85"] = "Ullan '85, BR328:333";
+            citationMap["Umet&Tabu88"] = "Umetani & Tabuchi '88, BrainBehEvol32:160";
+            citationMap["Umet89"] = "Umetani '89, KobeJMedSci35:65";
+            citationMap["Umet89b"] = "Umetani '89, BrBehavEvol33:334";
+            citationMap["Umet90"] = "Umetani '90, BR507:216";
+            citationMap["Umet93"] = "Umetani '93, BR586:91";
+            citationMap["Umetani86"] = "Umetani et al '86, BrainBehavEvol29:54";
+            citationMap["Umetani93b"] = "Umetani '93, BBehavEvol42:128";
+            citationMap["Unger71"] = "Ungerstedt '71, ActaPhysiolscand367:1";
+            citationMap["Urush88"] = "Urushibata et al '88, AdvOtorhinolaryngol41:95";
+            citationMap["Van84"] = "Van der Kooy et al '84, JCN224:1";
+            citationMap["VanBock&AshJon91"] = "Van-Bockstaele & Ashton-Jones '91, JCN309:305";
+            citationMap["VanBock&AshJon92"] = "Van-Bockstaele & Aston-Jones '92, BR576:59";
+            citationMap["VanBock&AsJon92"] = "Van-Bockstaele & Aston-Jones '92, Nsci49:653";
+            citationMap["VanBock89"] = "Van Bockstaele et al '89, JCN290:561";
+            citationMap["vanKooy82"] = "Van der Kooy et al '82, NsciLett33:123";
+            citationMap["Vaudan&Legg92"] = "Vaudano & Legg '92, AnatEmbryolBerl186:583";
+            citationMap["Vaughan83"] = "Vaughan '83, BR260:181";
+            citationMap["VaWa89"] = "Van-der-Want et al '89, JCN288:1";
+            citationMap["vdKooy&Koda83"] = "van-der-Kooy & Koda '83, JCN219:328";
+            citationMap["vdKooy&Kolb85"] = "Van-der-Kooy & Kolb '85, NsciLett57:113";
+            citationMap["vdT&vdW92"] = "van-der-Togt & van-der-Want '92, JCN325:446";
+            citationMap["VdWant91"] = "Van-der-Want et al '91";
+            citationMap["VdWant92"] = "Van-der-Want et al '92, ProgBR90:283";
+            citationMap["Veaz&Sev80"] = "Veazey & Severin '80, JCN190:231";
+            citationMap["Veen78a"] = "Veening '78a, NSciLett8:191";
+            citationMap["Veening84"] = "Veening et al '84, BR303:337";
+            citationMap["Vel&Rein82"] = "Velayos and Reinoso-Suarez '82, JCN206:17";
+            citationMap["Ver&Mar88"] = "Vertes & Martin '88, JCN275:511";
+            citationMap["Vert84"] = "Vertes '84, Nsci11:669";
+            citationMap["Vert84b"] = "Vertes '84, NSci11:651";
+            citationMap["Vert86"] = "Vertes et al '86, Nsci19:873";
+            citationMap["Vert88"] = "Vertes '88, Nsci24:907";
+            citationMap["Vert91"] = "Vertes '91, JCN313:643";
+            citationMap["Vertes&Fass88"] = "Vertes & Fass '88, ExpBR73:23";
+            citationMap["Vetter91"] = "Vetter et al '91, Synapse7:21";
+            citationMap["VGr&Wyss88"] = "Van-Groen & Wyss '88, JCn267:322";
+            citationMap["vGr90a"] = "Van Groen & Wyss '90a, JCN302:515-528";
+            citationMap["vGr90b"] = "Van Groen & Wyss '90b, BR529,165-177";
+            citationMap["vGr90c"] = "van Groen & Wyss '90c, BR518:227";
+            citationMap["vGr90d"] = "van Groen & Wyss '90d, JCN300:593";
+            citationMap["vGr92"] = "van Groen & Wyss '92, JCN315:200-216";
+            citationMap["vGr92b"] = "Van Groen & Wyss '92, JCN324:427";
+            citationMap["Villa91"] = "Villanueva et al '91, NsciLett134:98";
+            citationMap["Villalo&Ferssi87"] = "Villalobos & Ferssiwi '87, NsciLett81:95";
+            citationMap["Villalo&Ferssi87b"] = "Villalobos & Ferssiwi '87, NsciLett81:89";
+            citationMap["Villani83"] = "Villani et al '83, NsciLet42:261";
+            citationMap["Villar84"] = "Villar et al '84, BR324:165";
+            citationMap["Vin&Rub84"] = "Vincent & Rubertone '84, Anat.Rec208:188A";
+            citationMap["Vin78"] = "Vincent et al '78BR151:159";
+            citationMap["Vincent&Satoh84"] = "Vincent & Satoh '84, BR308:387";
+            citationMap["Vincent83"] = "Vincent et al '83, Science220:1309";
+            citationMap["Vo81"] = "Vogt et al '81, JCN201:265";
+            citationMap["Vo83"] = "Vogt & Miller '83, JCN216:192-210";
+            citationMap["Voogdt85"] = "Voogdt et al '85, Vol2 Chap11 in Paxinos 85 \"The rat nervous system\"";
+            citationMap["Voogdt91"] = "Voogdt et al '91, ArchItalBiol129:3";
+            citationMap["Vornov83"] = "Vornov & Sutin '83, JCN214:198";
+            citationMap["Wadd78"] = "Waddington & Cross '78, LifeSci22:1011";
+            citationMap["Wal69"] = "Waldron & Gwyn '69JCN137:143";
+            citationMap["Walker89"] = "Walker et al '89, ExpBR74:303";
+            citationMap["Wall34"] = "Waller '34";
+            citationMap["Wan92"] = "Wan et al '92, Nsci49:749";
+            citationMap["Wang&Li88a"] = "Wang & Li '88, ChineseJNeuroanat4:35";
+            citationMap["Wang&Li88b"] = "Wang & Li '88, ChineseJNeuroanat4:41";
+            citationMap["Wang&Li88c"] = "Wang & Li '88, ChineseJNeuroanat4:53";
+            citationMap["Wang92"] = "Wang et al '92, BR578:347";
+            citationMap["War&Span89"] = "Warr & Spangler '89, SocNsciAb15:745";
+            citationMap["Wart88"] = "Warton et al '88, ExpNeurol100:23";
+            citationMap["Wat79"] = "Watanabe & Kawana '79, BR65:498";
+            citationMap["Waterhse83"] = "Waterhouse et al '83, JCN217:418";
+            citationMap["Waterhse93"] = "Waterhouse et al '93, JCN336::345";
+            citationMap["Watts&Swans87"] = "Watts & Swanson '87, JCN258:230";
+            citationMap["Watts87"] = "Watts et al '87, JCN258:204";
+            citationMap["Wayn83"] = "Wayner et al '83, NsciBiobehRev7:375";
+            citationMap["Web81"] = "Webster et '81, JAnat(Lond)133:654";
+            citationMap["Webster85"] = "Webster '85, Chap 8 in Paxinos (ed) '85";
+            citationMap["Weinberg&Rustioni87"] = "Weinberg & Rustioni '87, NSci20:209";
+            citationMap["Weiss&Hatton90"] = "Weiss & Hatton '90, BRBull25:561";
+            citationMap["Well82"] = "Weller & Smith '82, BR232:255";
+            citationMap["Westb90"] = "Westby et al '90, ExpBR81:626";
+            citationMap["Westland83"] = "Westland et al '83, BR263:15";
+            citationMap["Westlund83"] = "Westlund et al '83, BR263:15";
+            citationMap["Whar&Payn85"] = "Wharton & Payne '85, ExpBR58:183";
+            citationMap["Whart&Payne85"] = "Wharton & Payne '85, ExpBR58:183";
+            citationMap["Whi&War83"] = "White & Warr '83, JCN219:203";
+            citationMap["Wi88"] = "Witter et al '88, NeurLett85:193-198";
+            citationMap["Wickes&Oer88"] = "Wickesberg & Oertel '88, JCN268:389";
+            citationMap["Wies82a"] = "Wiesendanger & Wiesendanger '82a, JCN208:215";
+            citationMap["Wies82b"] = "Wiesendanger & Wiesendanger '82b, JCN208:227";
+            citationMap["Will&Faul85"] = "Williams & Faull '85, Nsci14:991";
+            citationMap["Willcockson87"] = "Willcockson et al '87, JCN261:467";
+            citationMap["Willough&Bless87"] = "Willoughby & Blessing '87, BR418:170";
+            citationMap["Winer&Larue87"] = "Winer & Larue '87, JCN257:282";
+            citationMap["Wink81"] = "Winkelmann et al '81, Z.mikrosk.-anat.Forsch95:369";
+            citationMap["Wirtshafter86"] = "Wirtshafter et al '86, NsciLett64:259";
+            citationMap["Wirtshafter87"] = "Wirtshafter et al '87, NsciLett77:261";
+            citationMap["Wis75"] = "Wise '75, BR90:139";
+            citationMap["Wis76"] = "Wise & Jones '76, JCN168:313";
+            citationMap["Wis77"] = "Wise & Jones '77, JCN175:129";
+            citationMap["Wit86"] = "Witter '86";
+            citationMap["Witt92"] = "Witter et al '92, NsciLett148";
+            citationMap["Witter86"] = "Witter '86, AdvExpMedBiol203:67";
+            citationMap["Wolf78"] = "Wolf '78, SeparExp34";
+            citationMap["Woo&But86"] = "Woolf & Butcher '86, BRBull16:603";
+            citationMap["Woo&But89"] = "Woolf & Butcher '89, BRBull23:519";
+            citationMap["Woo82"] = "Woolf & Butcher '82, BRBull8:751";
+            citationMap["Wood&Angaut84"] = "Woodson & Angaut '84, ExpBR56:167";
+            citationMap["Woolf&Butch85"] = "Woolf & Butcher '85, BRBull14:63";
+            citationMap["Woolf83"] = "Woolf et al '83,NsciLett40:93";
+            citationMap["Woolf84"] = "Woolf et al '84, BRBull13:751";
+            citationMap["Woolf86"] = "Woolf et al '86, Nsci66:281";
+            citationMap["Wout&Tuin92"] = "Wouterlood & Tuinhof '92, JHirnforsch33:451";
+            citationMap["Wouter90"] = "Wouterlood et al '90, JCN296:179";
+            citationMap["Wouterlood87"] = "Wouterlood et al '87, BR406:330";
+            citationMap["Wr&Ar82"] = "Wright & Arbuthnott '82, NSci6:2063";
+            citationMap["Wree83"] = "Wree & Zilles '83, NsciLett43:19";
+            citationMap["Wree86"] = "Wree et al '86, AnatEmbryolBerl174:91";
+            citationMap["Wys79"] = "Wyss et al '79, AnatEmbryol156:165";
+            citationMap["Wys81"] = "Wyss '81, JCN199:495";
+            citationMap["Wyss&Srip84"] = "Wyss & Sripanidkulchai '84, BR293:1";
+            citationMap["Wyss&vGr92a"] = "Wyss & Van Groen '92, Hippocampus2:1";
+            citationMap["Wyss79b"] = "Wyss et al '79, Nsci4:463";
+            citationMap["Ya91"] = "Yasui et al '91, JCN 303:355-374";
+            citationMap["Yam&Toh87"] = "Yamano & Tohyama '87, BR408:22";
+            citationMap["Yam77"] = "Yamadori '77, Okajimas.Fol.Jap54:229";
+            citationMap["Yam83"] = "Yamadori & Yamauchi '83, BR269:41";
+            citationMap["Yama83"] = "Yamamauchi et al '83, NsciLett40:215";
+            citationMap["Yamano86"] = "Yamano et al '86, Nsci18:395";
+            citationMap["Yamas&Kauth90"] = "Yamasaki & Kauthamer '90, BR523:188";
+            citationMap["Yamas84"] = "Yamasaki et al '84, BR300:368";
+            citationMap["Yamas86"] = "Yamasaki et al '86, BR378:223";
+            citationMap["Yasui91"] = "Yasui et al '91, JCN308:293";
+            citationMap["Yasui92"] = "Yasui et al '92, ExpBR90:508";
+            citationMap["Yeo&Proud90"] = "Yeomans & Proudfit '90, BR532:329";
+            citationMap["Yez&Men91"] = "Yezierski & Mendez '91, Nsci44:113";
+            citationMap["Yezier88"] = "Yezierski '88, JCN267:131";
+            citationMap["Yosh91"] = "Yoshida et al '91, JCN307:609";
+            citationMap["Yosh92"] = "Yoshida et al '92, BR590:81";
+            citationMap["Yosh92b"] = "Yoshida et al '92, JCN324:115";
+            citationMap["Zaborszky84"] = "Zaborszky et al '84, BR303:225";
+            citationMap["Zaborszky86"] = "Zaborszky et al '86, JCN243:488";
+            citationMap["Zagon93"] = "Zagon '93, Nsci55:849";
+            citationMap["Zah&Heim90"] = "Zahm & Heimer '90, JCN302:437";
+            citationMap["Zah&Heim93"] = "Zahm & Heimer '93, JCN327:220";
+            citationMap["Zahm89"] = "Zahm '89, Nsci30:33";
+            citationMap["Zardett&Gray87"] = "Zardetto-Smith & Gray '87, NsciLett80:163";
+            citationMap["ZarSmith88"] = "Zaretto-Smith et al '88, Peptides9:1121";
+            citationMap["Zem&Beh84"] = "Zemlan & Behbehani '84, NsciLett52:103";
+            citationMap["Zem&Beh88"] = "Zemlan & Behbehani '88, BR453:89";
+            citationMap["Zemlan84"] = "Zemlan et al '84, BR292:207";
+            citationMap["Zen91"] = "Zeng & Stuesse '91, BR565:290";
+            citationMap["Zen93"] = "Zeng & Stuesse '93, BRBull32:195";
+            citationMap["Zeng&Xiong90"] = "Zheng & Xiong '90, ChenTzuYenChiu15:177";
+            citationMap["Zhang91"] = "Zhang et al '91, JHirnforsch32:641";
+            citationMap["Zhuo&Helk93"] = "Zhuo & Helke '93, Nsci52:1019";
+            citationMap["Zi85"] = "Zilles & Wree '85; Chap 10 of Paxinos (ed) '85";
+
+		}
+		
+		private var nCitations:int = 0;
+		private var nthCitation:int = 0;
+		private function updateCitationsHandler():void {
+			updateCitations.enabled = false;
+			nthCitation = 0;
+			nCitations = templateList.length;
+			doNextTemplateCitation();
+		}
+				
+		private var xCitations:int = 0;
+		private var xthCitation:int = 0;
+		private function updateXCitationsHandler():void {
+			updateXCitations.enabled = false;
+			xthCitation = 0;
+			xCitations = experimentList.length;
+			doNextExperimentCitation();
+		}
+		
+		private function updateTemplateCitation(e:ModelStoreEvent):void {
+			trace("Update template Citation handler, model=",e.model.modelName);
+			CursorManager.removeBusyCursor();
+			this.template = e.model;
+			if (template.source) {
+				var mappedSource:String = citationMap[template.source];
+				if (mappedSource) {
+					template.citeKey = template.source;
+					template.source = mappedSource;
+					status.text=nthCitation + ": Mapped " + template.citeKey + " to " + template.source;
+					trace("  Mapped " + template.citeKey + " to " + template.source);
+					CursorManager.setBusyCursor();
+					modelStore.saveModel(template);
+				} else {
+					trace("  No mapping for " + template.source);
+					status.text=nthCitation + ": No mapping for " + template.source;
+					doNextTemplateCitation();
+				}
+			}
+		}
+		
+		private function updateExperimentCitation(e:DataStoreEvent):void {
+			trace("Update template Citation handler, model=",e.experiment.modelName);
+			CursorManager.removeBusyCursor();
+			this.experiment = e.experiment;
+			if (experiment.source) {
+				var mappedSource:String = citationMap[experiment.source];
+				if (mappedSource) {
+					experiment.citeKey = experiment.source;
+					experiment.source = mappedSource;
+					xStatus.text=xthCitation + ": Mapped " + experiment.citeKey + " to " + experiment.source;
+					trace("  Mapped " + experiment.citeKey + " to " + experiment.source);
+					CursorManager.setBusyCursor();
+					dataStore.saveData(experiment);
+				} else {
+					trace("  No mapping for " + experiment.source);
+					xStatus.text=xthCitation + ": No mapping for " + experiment.source;
+					doNextExperimentCitation();
+				}
+			}
+		}
+		
+		private function processNextTemplateCitation(e:ModelStoreEvent):void {
+			CursorManager.removeBusyCursor();
+			doNextTemplateCitation();
+		}
+		private function processNextExperimentCitation(e:DataStoreEvent):void {
+			CursorManager.removeBusyCursor();
+			doNextExperimentCitation();
+		}
+		
+		private function doNextTemplateCitation():void {
+			if (nthCitation < nCitations) {
+				cursorManager.setBusyCursor();
+				modelStore.retrieveModel(templateList.getItemAt(nthCitation).uid);
+				nthCitation++;
+			} else {
+				updateCitations.enabled = true;
+				trace("Finished " + nCitations);
+				status.text="Done (" + nCitations + ")";
+				refresh();				
+			}
+		}
+		private function doNextExperimentCitation():void {
+			if (xthCitation < xCitations) {
+				cursorManager.setBusyCursor();
+				dataStore.retrieveData(experimentList.getItemAt(xthCitation).uid);
+				xthCitation++;
+			} else {
+				updateCitations.enabled = true;
+				xStatus.text="Done (" + xCitations + ")";
+				trace("Finished " + xCitations);
+				refresh();				
+			}
+		}
+		
+		private function handleListKefedTemplates(e:ModelStoreEvent):void {
+			// trace("Handle List Templates");
+			CursorManager.removeBusyCursor();
+			this.templateList = e.modelList;
+			templateGrid.selectedIndex = -1;
+		}
+		
+		private function handleListKefedExperimentss(e:DataStoreEvent):void {
+			CursorManager.removeBusyCursor();
+			this.experimentList = e.experimentList;
+			experimentGrid.selectedIndex = -1;
+		}
+
+    	public function initInventory():void {
+    		
+    		setupCitationMap();
+    		   		
+    		modelStore.addEventListener(ModelStoreEvent.LIST, handleListKefedTemplates);
+    		modelStore.addEventListener(ModelStoreEvent.RETRIEVE, updateTemplateCitation);
+    		modelStore.addEventListener(ModelStoreEvent.SAVE, processNextTemplateCitation);
+    		modelStore.addEventListener(FaultEvent.FAULT, FaultEventHandler);
+
+    		dataStore.addEventListener(DataStoreEvent.LIST, handleListKefedExperimentss);
+     		dataStore.addEventListener(DataStoreEvent.RETRIEVE, updateExperimentCitation);
+    		dataStore.addEventListener(DataStoreEvent.SAVE, processNextExperimentCitation);
+    		dataStore.addEventListener(FaultEvent.FAULT, FaultEventHandler);
+   		
+		}
+		
+	 public function refresh(e:Event=null):void {
+    		CursorManager.setBusyCursor();
+			modelStore.listModels();
+			CursorManager.setBusyCursor(); // Set again, since each handler pops one.
+    		dataStore.listData();		
+    	}
+
+			
+		]]>
+	</mx:Script>
+
+	<mx:states>
+	
+		<mx:State name="Dashboard_State">
+			<mx:RemoveChild target="{information}"/>
+			<mx:AddChild relativeTo="{top}">
+			<mx:Accordion height="100%" width="100%" initialize="initInventory()">
+		<mx:Panel label="Experimental Designs" width="100%" height="100%">
+						
+			<mx:DataGrid id="templateGrid" 
+							dataProvider="{templateList}" 
+							width="100%" 
+							height="100%" 
+							editable="false" 
+							doubleClickEnabled="false">
+				<mx:columns>
+					<mx:DataGridColumn headerText="Design Name" dataField="modelName" />
+					<mx:DataGridColumn headerText="Source" dataField="source" />
+					<mx:DataGridColumn headerText="Cite Key" dataField="citeKey" />
+					<mx:DataGridColumn headerText="Date" dataField="dateTime" />
+				</mx:columns>
+				
+			</mx:DataGrid>
+			<mx:Label id="status" text="Idle"/>
+	
+		    <mx:ControlBar width="100%">
+	            <mx:Spacer width="100%"/>
+	            <mx:Button id="updateCitations" label="Update Citations" click="updateCitationsHandler();" enabled="true"/>
+	        </mx:ControlBar>
+	
+		</mx:Panel>
+		
+		<mx:Panel label="Experiments" width="100%" height="100%">
+			
+			<mx:DataGrid id="experimentGrid" 
+							dataProvider="{experimentList}" 
+							width="100%" 
+							height="100%" 
+							editable="false"
+							doubleClickEnabled="false" >
+				<mx:columns>
+					<mx:DataGridColumn headerText="Experimental Design" dataField="type" />
+					<mx:DataGridColumn headerText="Experimental Label" dataField="modelName" />
+					<mx:DataGridColumn headerText="Source" dataField="source" />
+					<mx:DataGridColumn headerText="Cite Key" dataField="citeKey" />
+					<mx:DataGridColumn headerText="Date / Time" dataField="dateTime" />
+				</mx:columns>
+				
+			</mx:DataGrid>
+			<mx:Label id="xStatus" text="Idle"/>
+	
+		    <mx:ControlBar width="100%">
+	            <mx:Spacer width="100%"/>
+	            <mx:Button id="updateXCitations" label="Update Citations" click="updateXCitationsHandler();" enabled="true"/>
+	        </mx:ControlBar>
+	
+				</mx:Panel>					
+			</mx:Accordion>
+			</mx:AddChild>	
+		</mx:State>
+	
+	</mx:states>
+
+	<mx:VBox id="top" height="100%" width="100%">
+  	  <kefedUI:CreditBox id="information" height="100%" width="100%"
+	   	  	 componentName="CitationUpdate"/>
+	</mx:VBox>
+			
+</mx:Application>

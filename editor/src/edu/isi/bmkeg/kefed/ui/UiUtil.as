@@ -1,7 +1,7 @@
-// $Id$
+// $Id: UiUtil.as 2500 2011-06-17 00:00:05Z tom $
 //
-//  $Date$
-//  $Revision$
+//  $Date: 2011-06-16 17:00:05 -0700 (Thu, 16 Jun 2011) $
+//  $Revision: 2500 $
 //
 package edu.isi.bmkeg.kefed.ui
 {
@@ -17,21 +17,23 @@ package edu.isi.bmkeg.kefed.ui
 	import mx.controls.Alert;
 	import mx.controls.Button;
 	import mx.controls.TileList;
-	import mx.core.Application;
+	import mx.core.FlexGlobals;
 	import mx.managers.PopUpManager;
-	
+	import mx.rpc.events.FaultEvent;
+	import mx.rpc.http.HTTPService;
+
 	/** Class with generally useful UI routines.
 	 * 
 	 * 
 	 * @author University of Southern California
-	 * @date $Date$
-	 * @version $Revision$
+	 * @date $Date: 2011-06-16 17:00:05 -0700 (Thu, 16 Jun 2011) $
+	 * @version $Revision: 2500 $
 	 */
 	 public class UiUtil {
 	 	
 	 	private static const PROPERTIES_PATH:String = "/";
 	 	private static const PROPERTIES_FILENAME:String = "properties";
-	 	private static const H_PADDING:int = 6; 
+	 	private static const H_PADDING:int = 8; 
 		private static const V_PADDING_FACTOR:int = 2;
 
 	 	
@@ -46,7 +48,7 @@ package edu.isi.bmkeg.kefed.ui
 	 	public static function agreeToLicense (key:String, license:String) :void {
 	 		var properties:SharedObject = SharedObject.getLocal(PROPERTIES_FILENAME, PROPERTIES_PATH);
 	 		if (properties.data[key] == null) { // Hasn't already agreed.
-		 		var dialog:LicenseDialog = PopUpManager.createPopUp(Application.application as DisplayObject,
+		 		var dialog:LicenseDialog = PopUpManager.createPopUp(FlexGlobals.topLevelApplication as DisplayObject,
 																	LicenseDialog, true) as LicenseDialog;
 		 		dialog.licenseKey = key;
 		 		dialog.licenseText = license;
@@ -78,7 +80,7 @@ package edu.isi.bmkeg.kefed.ui
             var urlString:String = "javascript:window.opener = self; self.close();";
             var request:URLRequest = new URLRequest(urlString);
             navigateToURL(request, "_self");
-            Application.application.callLater(navigateToURL,[request, "_self"]);                                                
+			FlexGlobals.topLevelApplication.callLater(navigateToURL,[request, "_self"]);                                                
      	}
      	
 	    /** Handles all of the callback actions, either calling back to a JavaScript
@@ -91,7 +93,7 @@ package edu.isi.bmkeg.kefed.ui
 	     *  argument for the callback function.
 	     * 
 	     *  Any keys in the parameters object that have explicit null values will
-	     *  be reported as <key>=null in the parameter string.
+	     *  be reported as key=null in the parameter string.
 	     *  
 	     * @param functionName The name of a JavaScript function to call
 	     * @param baseUrl The base URL for a URL callback.  May be null.
@@ -122,7 +124,7 @@ package edu.isi.bmkeg.kefed.ui
 	      		trace("Callback: " + fullUrlString);
 	      		//Alert.show("Callback: " + fullUrlString);
 	      		//navigateToURL(request, "_self");
-	      		Application.application.callLater(navigateToURL, [request, "_self"]);
+				FlexGlobals.topLevelApplication.callLater(navigateToURL, [request, "_self"]);
 	      	}
 	      }
 	      
@@ -140,7 +142,7 @@ package edu.isi.bmkeg.kefed.ui
 	    	var maxItemWidth:int = 0;
 	    	var maxItemHeight:int = 0;
 	    	for each (var item:Object in tlist.dataProvider) {
-	    		var metrics:TextLineMetrics = tlist.measureText(item as String);
+	    		var metrics:TextLineMetrics = tlist.measureText(tlist.itemToLabel(item));
 	    		if (metrics.width > maxItemWidth) maxItemWidth = metrics.width;
 	    		if (metrics.height > maxItemHeight) maxItemHeight = metrics.height;
 	    	}
@@ -157,10 +159,10 @@ package edu.isi.bmkeg.kefed.ui
 	     *  than the existing size, enlarges the TileList
 	     * 
 		 *  @param tlist The tile list to adjust.
-		 *  @param newText The string value of the new item.
+		 *  @param newItem The newly added item.
 		 */		
-	    public static function adjustTileSizeForAddedItem (tlist:TileList, newText:String):void {
-	    	var metrics:TextLineMetrics  = tlist.measureText(newText);
+	    public static function adjustTileSizeForAddedItem (tlist:TileList, newItem:Object):void {
+	    	var metrics:TextLineMetrics  = tlist.measureText(tlist.itemToLabel(newItem));
 	    	var itemWidth:int = metrics.width + H_PADDING;
 	    	var itemHeight:int = metrics.height * V_PADDING_FACTOR;
 	  	  	if (itemWidth > tlist.columnWidth) tlist.columnWidth = itemWidth;
@@ -175,15 +177,31 @@ package edu.isi.bmkeg.kefed.ui
 	     *  Note, this only checks the width, since we assume that the
 	     *  height would remain the same.
 	     * 
-		 *  @param tlist The tile list to adjust.
-		 *  @param removedText The string value of the removed item.
-		 */		
-	    public static function adjustTileSizeForRemovedItem (tlist:TileList, removedText:String):void {
-	    	var metrics:TextLineMetrics  = tlist.measureText(removedText);
+	     *  @param tlist The tile list to adjust.
+	     *  @param removedItem The removed item.
+	     */		
+	    public static function adjustTileSizeForRemovedItem (tlist:TileList, removedItem:Object):void {
+	    	var metrics:TextLineMetrics  = tlist.measureText(tlist.itemToLabel(removedItem));
 	    	var itemWidth:int = metrics.width + H_PADDING;
 	  	  	if (itemWidth >= tlist.columnWidth) adjustTileSizeToFit(tlist);
-	    }	    
-	    
+	    }
+
+
+	    /** Returns a fault URL string if this FaultEvent concerns an HTTPService.
+	     *   This is useful for providing a better error messages on service faults.
+	     *
+	     * @param event The FaultEvent
+	     * @return A fault URL string if present.
+	     */
+	    public static function getFaultURL (event:FaultEvent):String {
+			if (event.currentTarget is HTTPService) {
+			    return "URL=" + (event.currentTarget as HTTPService).url;
+			} else if (event.target is HTTPService) {
+				return "URL=" + (event.target as HTTPService).url;
+			} else {
+			    return "";
+			}
+  	    }
 
 	}
 }

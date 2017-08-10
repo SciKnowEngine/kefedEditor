@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- $Id$ 
-     $Date$
-     $Revision$ -->
+<!-- $Id: KefedModelNavigator.mxml 2490 2011-06-15 23:55:41Z tom $ 
+     $Date: 2011-06-15 16:55:41 -0700 (Wed, 15 Jun 2011) $
+     $Revision: 2490 $ -->
 <mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" 
 	xmlns:kefedUI="edu.isi.bmkeg.kefed.ui.*"
 	width="100%" height="100%" 
@@ -28,6 +28,7 @@
 			import edu.isi.bmkeg.kefed.elements.KefedModel;
 			import edu.isi.bmkeg.kefed.store.IModelStore;
 			import edu.isi.bmkeg.utils.Parameters;
+			import edu.isi.bmkeg.kefed.ui.UiUtil;
 		
 		
 			[Bindable]
@@ -48,7 +49,7 @@
 			public var serverUrl:String;
 			public var config:Parameters;
 
-			private var version:String = "$Revision$";
+			private var version:String = "$Revision: 2490 $";
 			private var modelUid:String = null;
 			
 			private function init():void {
@@ -97,7 +98,7 @@
 			}
 			
 			private function handleModelStoreFault(event:FaultEvent):void {
-	  			errorMessage = "ModelStore: " + event.message.toString();
+	  			errorMessage = "ModelStore: " + UiUtil.getFaultURL(event) + "\n" + event.message.toString();
 	  			trace(errorMessage);
 	  			Alert.show(errorMessage);
 	  			doErrorCallback("ModelStoreError", event.message.toString());
@@ -149,7 +150,7 @@
 	<mx:states>
 		<mx:State name="Navigate_State">
 			<mx:RemoveChild target="{information}"/>
-			<mx:AddChild relativeTo="{top}">
+			<mx:AddChild relativeTo="top">
 				<kefedUI:ModelNavigationComponent label="Navigator" id="navigator" height="100%" width="100%"
 						 callbackFunction="{callbackFunction}"  zoomFactor="{zoomFactor}"/>
 			</mx:AddChild>	

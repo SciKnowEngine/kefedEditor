@@ -1,22 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- $Id$ 
-     $Date$
-     $Revision$ -->
+<!-- $Id: NewKefedTemplateDialog.mxml 2548 2011-07-06 22:59:32Z tom $ 
+     $Date: 2011-07-06 15:59:32 -0700 (Wed, 06 Jul 2011) $
+     $Revision: 2548 $ -->
 <mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" 
-	title="Add New KEfED Model" layout="absolute"	showCloseButton="true">
+	layout="absolute"	showCloseButton="true">
+	<mx:Script>
+	<![CDATA[
+		[Bindable]
+		public var editable:Boolean = true;
+	]]>
+	</mx:Script>
 	<mx:VBox bottom="10" horizontalAlign="center">		
 		<mx:Form id="form">
 			<mx:FormItem label="Design Name">
-				<mx:TextInput id="Name" text=""/>				
+				<mx:TextInput id="Name" text="" editable="{editable}"/>				
 			</mx:FormItem>		
 			<mx:FormItem label="Design Source">
-				<mx:TextInput id="Source" text=""/>				
+				<mx:TextInput id="Source" text="" editable="{editable}"/>				
 			</mx:FormItem>
 			<mx:FormItem label="Citation Key">
-				<mx:TextInput id="Citation" text=""/>
+				<mx:TextInput id="Citation" text="" editable="{editable}"/>
 			</mx:FormItem>
 			<mx:FormItem label="Template Description">
-				<mx:TextArea id="Description" text=""/>				
+				<mx:TextArea id="Description" text="" editable="{editable}"/>				
 			</mx:FormItem>
 			<mx:FormItem>
 				<mx:HBox >

@@ -9,7 +9,6 @@
   <dataStoreType>elasticSearch</dataStoreType>
   <dataStoreUrl>http://localhost:9200/kefed/data</dataStoreUrl>
 
-
   <!--
   <schemaStoreType>persevere</schemaStoreType>
   <schemaStoreUrl>persevere/</schemaStoreUrl>
@@ -19,11 +18,13 @@
    <callbackUrl>http://cowabunga.isi.edu:9000/echo/done</callbackUrl>
    -->
    <callbackFunction>alert</callbackFunction>
-  
-  <!--
-  <action>editModel</action>
-  <uid>8AC46693-1A6B-C219-A03F-8027A6A2A615</uid>
-  -->
+
+    <ontologyLookupType>ncbo</ontologyLookupType>
+
+    <!--
+    <action>editModel</action>
+    <uid>8AC46693-1A6B-C219-A03F-8027A6A2A615</uid>
+    -->
   
   <!--
   <action>createModel</action>

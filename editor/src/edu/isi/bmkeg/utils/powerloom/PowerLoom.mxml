@@ -1,26 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- $Id$ 
-     $Date$
-     $Revision$ -->
+<!-- $Id: PowerLoom.mxml 2490 2011-06-15 23:55:41Z tom $ 
+     $Date: 2011-06-15 16:55:41 -0700 (Wed, 15 Jun 2011) $
+     $Revision: 2490 $ -->
 <mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml"
 	label="PowerLoom">
 	
 	<mx:Script>
 		<![CDATA[
-			import mx.core.Application;
-		
-			import mx.events.ListEvent;
-			import mx.controls.dataGridClasses.DataGridColumn;
-			import mx.controls.Alert;
-			import mx.collections.ArrayCollection;
-			import mx.rpc.soap.WebService;
-			import mx.rpc.events.ResultEvent;
-			import mx.rpc.events.FaultEvent;
-			import mx.rpc.http.HTTPService;
-			
+			import edu.isi.bmkeg.kefed.ui.UiUtil;
 			import edu.isi.bmkeg.utils.powerloom.PL;
 			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.core.Application;
+			import mx.core.FlexGlobals;
+			import mx.events.ListEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.http.HTTPService;
+			import mx.rpc.soap.WebService;
+			
 			namespace plsoap = "http://www.isi.edu/powerloom/";
+			
+			[Bindable]
+			public var plserver:String;
 			
 			public function commandResultHandler(event:ResultEvent):void {
 				clearError();
@@ -50,7 +54,7 @@
 			
 			public function faultHandler(event:FaultEvent):void {
 				errorType.text=event.fault.faultString;
-				errorDetail.text=event.fault.faultDetail;
+				errorDetail.text = UiUtil.getFaultURL(event) + "\n" + event.fault.faultDetail;
 			}
 			]]>
 	</mx:Script>
@@ -58,7 +62,7 @@
 	<mx:WebService id="plsoapWS"
 		fault="faultHandler(event);"
 		useProxy="false"
-		wsdl='{Application.application.serverUrl + "ploom/soap-wsdl/powerloom-soap-service.wsdl"}'
+		wsdl='{plserver + "ploom/soap-wsdl/powerloom-soap-service.wsdl"}'
 		showBusyCursor="true">
 		<mx:operation name="Command"
 			resultFormat="e4x"

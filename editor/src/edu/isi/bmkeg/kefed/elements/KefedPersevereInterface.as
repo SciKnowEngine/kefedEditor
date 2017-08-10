@@ -1,7 +1,7 @@
-// $Id$
+// $Id: KefedPersevereInterface.as 1240 2010-10-07 16:17:56Z tom $
 //
-//  $Date$
-//  $Revision$
+//  $Date: 2010-10-07 09:17:56 -0700 (Thu, 07 Oct 2010) $
+//  $Revision: 1240 $
 //
 package edu.isi.bmkeg.kefed.elements
 {

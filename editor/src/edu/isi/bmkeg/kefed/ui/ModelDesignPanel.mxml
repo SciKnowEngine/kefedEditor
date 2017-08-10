@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- $Id$ 
-     $Date$
-     $Revision$ -->
+<!-- $Id: ModelDesignPanel.mxml 2490 2011-06-15 23:55:41Z tom $ 
+     $Date: 2011-06-15 16:55:41 -0700 (Wed, 15 Jun 2011) $
+     $Revision: 2490 $ -->
 <mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="vertical"
 	width="100%" height="100%"
 	preinitialize="init();"
@@ -9,6 +9,7 @@
 	
 	 <mx:Script>
 	<![CDATA[
+		import edu.isi.bmkeg.kefed.ontology.OntologySearchInterface;
 		import edu.isi.bmkeg.kefed.store.persevere.YogoModelStore;
 		import edu.isi.bmkeg.kefed.store.json.YogoSerializer;
 		import mx.events.CloseEvent;
@@ -92,7 +93,7 @@
 		
 		private function callError(e:FaultEvent):void {
 			cursorManager.removeBusyCursor();
-			Alert.show(e.message.toString());				
+			Alert.show(UiUtil.getFaultURL(e) + "\n" + e.message.toString());				
 		}
 
     	public function refresh(e:Event=null):void {

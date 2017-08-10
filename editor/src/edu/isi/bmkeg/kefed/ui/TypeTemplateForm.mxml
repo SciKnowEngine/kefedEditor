@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- $Id$ 
-     $Date$
-     $Revision$ -->
+<!-- $Id: TypeTemplateForm.mxml 2057 2011-03-30 01:12:31Z tom $ 
+     $Date: 2011-03-29 18:12:31 -0700 (Tue, 29 Mar 2011) $
+     $Revision: 2057 $ -->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 	xmlns:ui="edu.isi.bmkeg.kefed.ui.*"
 	creationComplete="initTypeOptions()">
@@ -13,8 +13,11 @@
 	Takes myType property which should be a KefedBaseTypeTemplate or a KefedFullTypeTemplate. -->
 <mx:Script>
 	<![CDATA[
-		import mx.utils.StringUtil;
-		import mx.controls.dataGridClasses.DataGridColumn;
+
+	import mx.controls.listClasses.ListBase;
+	import edu.isi.bmkeg.kefed.ontology.OntologySearchInterface;
+	import mx.utils.StringUtil;
+	import mx.controls.dataGridClasses.DataGridColumn;
 	
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
@@ -31,6 +34,14 @@
 	
 	[Bindable]
 	public var myType:KefedBaseValueTemplate;
+	
+	/** Ontology search interface to be used for term lookup.
+	 *  Required for proper finding of ontology terms for fields
+	 *  in table types and eventually for term data values.
+	 */
+	[Bindable]
+	public var termLookupService:OntologySearchInterface;
+
 	
 	/** Monotonic controls whether only monotonic changes are allowed
 	 *  or whether all changes are allowed.  Monotonic changes only 
@@ -94,8 +105,11 @@
     /** Handle selected row change on the multiSlotGrid
     */
     private function reactToFieldChange():void {
-		var enable:Boolean = (multislotGrid.selectedIndex != -1);
+    	var index:int = multislotGrid.selectedIndex;
+		var enable:Boolean = (index != -1);
 		removeFieldButton.enabled = enable;
+		moveValueUpButton.enabled = enable && index > 0 ;
+		moveValueDownButton.enabled = enable && index < (myType as KefedFullValueTemplate).multipleSlotFields.length - 1 ;
 		fieldTypeForm.enabled = enable;
 	} 
 	
@@ -141,6 +155,38 @@
 		}
 		reactToFieldChange();
 	}
+	
+	 private function setSelectedIndex(list:ListBase, index:int):void {
+     	list.selectedIndex = index;
+     }
+	
+	/** Move the selected field to an earlier place on the list.
+     * 
+     * @param evt Button click event
+     */
+     private function moveFieldUp(evt:Event):void {
+     	var index:int = multislotGrid.selectedIndex;
+     	// Make sure we have a selection and a place to move it.
+     	if (index != -1 && index > 0) {
+     		var itemToMove:Object = (myType as KefedFullValueTemplate).multipleSlotFields.removeItemAt(index);
+     		(myType as KefedFullValueTemplate).multipleSlotFields.addItemAt(itemToMove, index - 1);
+     		callLater(setSelectedIndex, [multislotGrid, index - 1]);
+     	}
+     }
+     
+    /** Move the selected field to an later place on the list.
+     * 
+     * @param evt Button click event
+     */
+     private function moveFieldDown(evt:Event):void {
+    	var index:int = multislotGrid.selectedIndex;
+     	// Make sure we have a selection and a place to move it.
+     	if (index != -1 && index < (myType as KefedFullValueTemplate).multipleSlotFields.length - 1) {
+     		var itemToMove:Object = (myType as KefedFullValueTemplate).multipleSlotFields.removeItemAt(index);
+     		(myType as KefedFullValueTemplate).multipleSlotFields.addItemAt(itemToMove, index + 1);
+     		callLater(setSelectedIndex, [multislotGrid, index + 1]); 
+     	}    	
+     }
 	
 	/** Return the type name (typeValue field) of the column's BaseValueTemplate object.
 	 */
@@ -421,14 +467,23 @@
 		    	</mx:columns>
 		    </mx:DataGrid>
 			<mx:HBox width="100%" enabled="{!monotonic}">
-				<mx:Button id="addFieldButton" label="Add" click="addField();" />
-				<!-- <mx:Button id="editFieldButton" label="Edit" click="editField();" /> -->
-				<mx:Spacer width="10"/>
-				<mx:Button id="removeFieldButton" label="Remove" click="removeField();"/>
+				<mx:Button id="addFieldButton" label="+" click="addField();" enabled="true"
+						toolTip="Add a new field to end."/>
+				<mx:Spacer width="5"/>
+				<mx:Button id="removeFieldButton" label="-" fontWeight="bold"
+						click="removeField();" enabled="false"
+						toolTip="Remove the selected field."/>
+				<mx:Button id="moveValueUpButton" label="^"
+						click="moveFieldUp(event)" enabled="false"
+						toolTip="Move selected item up (earlier) in list"/>
+				<mx:Button id="moveValueDownButton" label="v"
+						click="moveFieldDown(event)" enabled="false"	
+						toolTip="Move selected item down (later) in list"/>
 			</mx:HBox>
 			<mx:Spacer height="10"/>
 			<ui:FieldTemplateTabs id="fieldTypeForm" width="100%" height="65%" minHeight="120"
 								  myObject="{KefedFieldTemplate(multislotGrid.selectedItem)}"
+								  termLookupService="{termLookupService}"
 								  monotonic="{monotonic}"
 								  enabled="{multislotGrid.selectedItem != null}"/>
 		</mx:VBox>

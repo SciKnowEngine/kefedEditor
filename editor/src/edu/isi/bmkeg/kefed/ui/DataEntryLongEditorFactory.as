@@ -1,7 +1,7 @@
-// $Id$
+// $Id: DataEntryLongEditorFactory.as 1482 2010-12-15 02:02:49Z tom $
 //
-//  $Date$
-//  $Revision$
+//  $Date: 2010-12-14 18:02:49 -0800 (Tue, 14 Dec 2010) $
+//  $Revision: 1482 $
 //
 package edu.isi.bmkeg.kefed.ui
 {

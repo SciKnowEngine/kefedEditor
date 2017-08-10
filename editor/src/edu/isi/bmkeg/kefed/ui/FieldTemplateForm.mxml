@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- $Id$ 
-     $Date$
-     $Revision$ -->
+<!-- $Id: FieldTemplateForm.mxml 1594 2011-02-02 01:06:35Z tom $ 
+     $Date: 2011-02-01 17:06:35 -0800 (Tue, 01 Feb 2011) $
+     $Revision: 1594 $ -->
 <mx:Form xmlns:mx="http://www.adobe.com/2006/mxml" width="100%"
 	xmlns:ui="edu.isi.bmkeg.kefed.ui.*">
 <!-- A form that is used for entering information about variables.
@@ -9,6 +9,7 @@
      -->
 <mx:Script>
 	<![CDATA[
+		import edu.isi.bmkeg.kefed.ontology.OntologySearchInterface;
 		import mx.utils.StringUtil;
 	
 	import mx.events.FlexEvent;
@@ -24,6 +25,9 @@
 	
 	[Bindable]
 	public var myObject:KefedFieldTemplate;
+	
+	[Bindable]
+	public var termLookupService:OntologySearchInterface;
 	
 	/** Monotonic controls whether only monotonic changes are allowed
 	 *  or whether all changes are allowed.  Monotonic changes only 
@@ -66,7 +70,8 @@
 				valueCommit="handleObjectNameChanged(event)"/>
 	</mx:FormItem>
 	<ui:OntologyIdFormItem label="Terms" direction="vertical" width="100%"
-		myObject="{myObject}"/>
+		visible="{termLookupService != null}"
+		myObject="{myObject}"  termLookupService="{termLookupService}"/>
 	<ui:TypeTemplateForm label="Types" myType="{myObject.valueType}"
 		monotonic="{monotonic}" width="100%"/>
 		<mx:FormHeading label="Notes"/>

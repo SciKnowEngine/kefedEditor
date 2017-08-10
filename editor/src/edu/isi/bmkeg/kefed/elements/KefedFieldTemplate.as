@@ -1,7 +1,7 @@
-// $Id$
+// $Id: KefedFieldTemplate.as 1524 2011-01-04 01:05:27Z tom $
 //
-//  $Date$
-//  $Revision$
+//  $Date: 2011-01-03 17:05:27 -0800 (Mon, 03 Jan 2011) $
+//  $Revision: 1524 $
 //
 
 package edu.isi.bmkeg.kefed.elements
@@ -13,8 +13,8 @@ package edu.isi.bmkeg.kefed.elements
 	 *   Value.
 	 * 
 	 * @author University of Southern California
-	 * @date $Date$
-	 * @version $Revision$
+	 * @date $Date: 2011-01-03 17:05:27 -0800 (Mon, 03 Jan 2011) $
+	 * @version $Revision: 1524 $
 	 * 
 	 *   NOTE: There is a need to also update 
 	 *   KefedPersevereInterface.deserializeKefedObject

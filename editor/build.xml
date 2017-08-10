@@ -5,7 +5,7 @@
 
   Contains the following targets:
     compile     - compiles the entire set of applications
-    compile-app - compile a single app specified by APP parameter (BioScholar)
+    compile-app - compile a single app specified by APP parameter (KefedEditor)
     war         - generate blazeds.war file with all applications
     dist        - compile files and generate a war DEFAULT
     doc         - generate ASDOC files
@@ -17,7 +17,7 @@
     FLEX_HOME    - MUST be set.  Points to the Flex SDK installation.
                    Will try to read from the host FLEX_HOME environment variable.
     APP_LIST     - List of Kefed editor applications to build.  By default
-                   BioScholar,KefedModelEditor,KefedModelNavigator,NeuralConnectivity
+                   KefedEditor,KefedModelEditor,KefedModelNavigator,NeuralConnectivity
     DEMO_APP     - Application to build as a demo, after setting a Boolean variable
                    value named "demo" to true.
     WARN         - Flag to control printing of compiler warnings.  Default: false.

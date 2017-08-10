@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- $Id$ 
-     $Date$
-     $Revision$ -->
+<!-- $Id: RelativeRegionEditor.mxml 2490 2011-06-15 23:55:41Z tom $ 
+     $Date: 2011-06-15 16:55:41 -0700 (Wed, 15 Jun 2011) $
+     $Revision: 2490 $ -->
 <ui:StructuredEditorComponent width="100%"
 	xmlns:mx="http://www.adobe.com/2006/mxml"
 	xmlns:ui="edu.isi.bmkeg.kefed.ui.*"
 	initialize="init()" creationComplete="handleCreationComplete(event)"
-	borderStyle="solid" borderColor="#FFFF00" 
+	borderStyle="solid" borderColor="#FFFF00" borderVisible="true"
 	backgroundAlpha="1" backgroundColor="#FFFFFF">
 	<!-- Component for entering descriptions of anonymous, relative
 	 regions.  Relative regions are arbitrary regions defined by their
@@ -174,10 +174,9 @@
 		<mx:String>overlaps</mx:String>
 		<mx:String>non-overlapping</mx:String>
 	</mx:ArrayCollection>
-		<!-- Setup bi-directional bindings
-		NOTE THAT THIS IS LIKELY TO CAUSE ERRORS IF WE USE THIS ELELMENT
+		<!-- Setup bi-directional bindings -->
 		<mx:Binding source="relation.value" destination="dataItem.relation"/>
-		<mx:Binding source="regions.selectedItems" destination="dataItem.regions"/>-->
+		<mx:Binding source="regions.selectedItems" destination="dataItem.regions"/>
 
 		<ui:DataGridComboBox id="relation"
 					 dataProvider="{allowedRelations}"

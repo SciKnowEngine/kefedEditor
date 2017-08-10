@@ -258,9 +258,9 @@ package edu.isi.bmkeg.kefed.store.json {
 		 private static function convertOntologyReferenceToObject(ref:OntologyTermReference):Object {
 			var clone:Object = new Object();
 			
-			clone.ontology = ref.ontology;
-			clone.ontologyIdentifier = ref.ontologyIdentifier;
-			clone.ontologyLocalName = ref.ontologyLocalName;
+			clone.ontology = ref.ontologyId;
+			clone.ontologyIdentifier = ref.termId;
+			clone.ontologyLocalName = ref.localName;
 			
 			return clone;		
 		}

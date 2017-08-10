@@ -1,4 +1,4 @@
-// $Id$
+// $Id: BindingDebugger.as 1482 2010-12-15 02:02:49Z tom $
 package edu.isi.bmkeg.utils {
 	// Attributed to Cahtal Golden.
 	// From http://dodgybits.org/2009/04/12/flex-data-binding-pitfalls/
