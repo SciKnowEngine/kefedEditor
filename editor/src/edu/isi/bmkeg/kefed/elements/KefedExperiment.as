@@ -1,4 +1,4 @@
-// $Id$
+// $Id: KefedExperiment.as 2548 2011-07-06 22:59:32Z tom $
 
 package edu.isi.bmkeg.kefed.elements
 {
@@ -11,8 +11,8 @@ package edu.isi.bmkeg.kefed.elements
 	 *  TODO: Make this be more than a placeholder or renaming of KefedModel.
 	 * 
 	 * @author University of Southern California
-	 * @date $Date$
-	 * @version $Revision$
+	 * @date $Date: 2011-07-06 15:59:32 -0700 (Wed, 06 Jul 2011) $
+	 * @version $Revision: 2548 $
 	 * 
 	 */	
 	[Bindable]
@@ -72,6 +72,7 @@ package edu.isi.bmkeg.kefed.elements
 					this.source = model.source;
 					this.citeKey = model.citeKey;
 					this.uid = model.uid;
+					this.description = model.description;
 				}
 				
 				this.diagramXML = model.diagramXML;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- $Id$ 
-     $Date$
-     $Revision$ -->
+<!-- $Id: VariableTemplateForm.mxml 1594 2011-02-02 01:06:35Z tom $ 
+     $Date: 2011-02-01 17:06:35 -0800 (Tue, 01 Feb 2011) $
+     $Revision: 1594 $ -->
 <ui:NamedObjectTemplate width="100%"
 	xmlns:mx="http://www.adobe.com/2006/mxml" 
 	xmlns:ui="edu.isi.bmkeg.kefed.ui.*">
@@ -21,9 +21,12 @@
 				valueCommit="handleObjectNameChanged(event)"/>
 	</mx:FormItem>
 	<ui:OntologyIdFormItem label="Terms" direction="vertical" width="100%"
+		termLookupService="{termLookupService}"
+		visible="{termLookupService != null}"
 		myObject="{myObject}"/>
-	<ui:TypeTemplateForm label="Types" monotonic="{monotonic}"
-						 myType="{myObject.valueType}" width="100%"/>
+	<ui:TypeTemplateForm label="Types" monotonic="{monotonic}" width="100%"
+						 termLookupService="{termLookupService}"
+						 myType="{myObject.valueType}"/>
 	<mx:FormHeading label="Notes"/>
 	<ui:NotesComponent label="Notes" width="100%" height="100%" myObject="{myObject}"/>	
 </mx:Form>

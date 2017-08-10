@@ -1,4 +1,4 @@
-// $Id$
+// $Id: DataUtil.as 2057 2011-03-30 01:12:31Z tom $
 package edu.isi.bmkeg.utils
 {
 	import mx.collections.ArrayCollection;
@@ -9,8 +9,8 @@ package edu.isi.bmkeg.utils
 	 *   various formats such as XML.
 	 * 
 	 * @author University of Southern California
-	 * @date $Date$
-	 * @version $Revision$
+	 * @date $Date: 2011-03-29 18:12:31 -0700 (Tue, 29 Mar 2011) $
+	 * @version $Revision: 2057 $
 	 * 
 	 */
 	 public class DataUtil

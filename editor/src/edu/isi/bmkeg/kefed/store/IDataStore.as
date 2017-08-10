@@ -1,4 +1,4 @@
-// $Id$
+// $Id: IDataStore.as 1180 2010-09-22 17:19:40Z tom $
 
 package edu.isi.bmkeg.kefed.store
 {
@@ -14,8 +14,8 @@ package edu.isi.bmkeg.kefed.store
 	 *  of type DataStoreEvent.
 	 * 
 	 * @author University of Southern California
-	 * @date $Date$
-	 * @version $Revision$
+	 * @date $Date: 2010-09-22 10:19:40 -0700 (Wed, 22 Sep 2010) $
+	 * @version $Revision: 1180 $
 	 * 
 	 */
 	public interface IDataStore extends IEventDispatcher

@@ -1,7 +1,7 @@
-// $Id$
+// $Id: PLExporter.as 2490 2011-06-15 23:55:41Z tom $
 //
-//  $Date$
-//  $Revision$
+//  $Date: 2011-06-15 16:55:41 -0700 (Wed, 15 Jun 2011) $
+//  $Revision: 2490 $
 //
 
 package edu.isi.bmkeg.utils.powerloom
@@ -21,8 +21,8 @@ package edu.isi.bmkeg.utils.powerloom
 	 *  data in a PowerLoom format.
 	 * 
 	 * @author University of Southern California
-	 * @date $Date$
-	 * @version $Revision$
+	 * @date $Date: 2011-06-15 16:55:41 -0700 (Wed, 15 Jun 2011) $
+	 * @version $Revision: 2490 $
 	 */
 	public class PLExporter
 	{
@@ -365,7 +365,7 @@ package edu.isi.bmkeg.utils.powerloom
 				// TODO: Limit this to PowerLoom terms when a PowerLoom web service
 				//   with search capability is introduced.
 				pl += prefix + "(measures " + variable.uid + " " 
-				             + powerLoomName(ref.ontologyIdentifier) + ")";
+				             + powerLoomName(ref.termId) + ")";
 			}
 		}
 		for each (variable in model.getMeasurements()) {

@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- $Id$ 
-     $Date$
-     $Revision$ -->
+<!-- $Id: NewKefedExperimentDialog.mxml 2548 2011-07-06 22:59:32Z tom $ 
+     $Date: 2011-07-06 15:59:32 -0700 (Wed, 06 Jul 2011) $
+     $Revision: 2548 $ -->
 <mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" 
-	title="Add New KEfED Model..." layout="absolute"	showCloseButton="true" >
+      layout="absolute"	showCloseButton="true" >
 
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
+			
+			[Bindable]
+			public var editable:Boolean = true;
 
 			/** A list of template descriptor objects.  These must
 			 *  have entries for "modelName" and "source".
@@ -33,20 +36,27 @@
 	
 	<mx:VBox bottom="10" horizontalAlign="center">		
 		<mx:Form>
-			<mx:FormItem label="Experiment Type">
+			<mx:FormItem id="TypeFieldList" label="Experiment Type" visible="true">
 				<mx:ComboBox id="Type" labelField="modelName" 
 					change="setFieldsForType(Type.selectedItem);" 
-					dataProvider="{templateList}"/>				
+					dataProvider="{templateList}"
+					editable="{editable}"/>				
+			</mx:FormItem>
+			<mx:FormItem id="TypeFieldItem" label="Experiment Type" visible="false">
+				<mx:TextInput id="TypeField" editable="{editable}"/>
 			</mx:FormItem>
 			<mx:FormItem label="Experiment Label">
-				<mx:TextInput id="Name"/>				
+				<mx:TextInput id="Name" editable="{editable}"/>				
 			</mx:FormItem>		
 			<mx:FormItem label="Source">
-				<mx:TextInput id="Source"/>				
+				<mx:TextInput id="Source" editable="{editable}"/>				
 			</mx:FormItem>
 			<mx:FormItem label="Citation Key">
-				<mx:TextInput id="Citation"/>				
-			</mx:FormItem>	
+				<mx:TextInput id="Citation" editable="{editable}"/>				
+			</mx:FormItem>
+			<mx:FormItem label="Description">
+				<mx:TextInput id="Description" editable="{editable}"/>
+			</mx:FormItem>
 			<!--
 			<mx:FormItem label="Reference">
 				<mx:TextInput id="Reference"/>

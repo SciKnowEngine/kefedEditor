@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- $Id$ 
-     $Date$
-     $Revision$ -->
+<!-- $Id: AllowedValuesListComponent.mxml 1524 2011-01-04 01:05:27Z tom $ 
+     $Date: 2011-01-03 17:05:27 -0800 (Mon, 03 Jan 2011) $
+     $Revision: 1524 $ -->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 	height="100%" width="100%"
 	creationComplete="initComponent(event)">

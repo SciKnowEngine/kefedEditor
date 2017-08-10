@@ -1,7 +1,7 @@
-// $Id$
+// $Id: KefedObject.as 2057 2011-03-30 01:12:31Z tom $
 //
-//  $Date$
-//  $Revision$
+//  $Date: 2011-03-29 18:12:31 -0700 (Tue, 29 Mar 2011) $
+//  $Revision: 2057 $
 //
 package edu.isi.bmkeg.kefed.elements
 {
@@ -15,8 +15,8 @@ package edu.isi.bmkeg.kefed.elements
 	/**  General KefedObject for representing Kefed model elements.
 	 * 
 	 * @author University of Southern California
-	 * @date $Date$
-	 * @version $Revision$
+	 * @date $Date: 2011-03-29 18:12:31 -0700 (Tue, 29 Mar 2011) $
+	 * @version $Revision: 2057 $
 	 * 
 	 *   NOTE: There is a need to also update 
 	 *   KefedPersevereInterface.deserializeKefedObject
@@ -108,13 +108,21 @@ package edu.isi.bmkeg.kefed.elements
 			return isParameter() || isConstant() || isMeasurement();
 		}
 		
-		/** Tests whether this object represents a variable in KEfED.
+		/** Tests whether this object represents a region variable in KEfED.
 		 * 
-		 * @return True if this is a variable
+		 * @return True if this is a region variable
 		 */
 		public function isRegionVariable():Boolean {
 			return isVariable() && valueType.valueTypeName == "Region";
-		}		
+		}
+		
+		/** Tests whether this object represents a table variable in KEfED.
+		 * 
+		 * @return True if this is a table variable.
+		 */
+		public function isTableVariable():Boolean {
+			 return isVariable() && valueType.valueTypeName == "Table";
+		}
 		
 		/** Tests whether this object represents a parameter variable in KEfED.
 		 * 
@@ -138,7 +146,22 @@ package edu.isi.bmkeg.kefed.elements
 			return spriteid == DiagramMappings.MEASUREMENT_SPRITE_ID;
 		}
 		
-				 
+		/** Tests whether this object represents an activity node in KEfED.
+		 * 
+		 * @return True if this is an activity node
+		 */
+		 public function isActivity():Boolean {
+		 	return spriteid == DiagramMappings.ACTIVITY_SPRITE_ID;
+		 }
+		
+		/** Tests whether this object represents an entity node in KEfED.
+		 * 
+		 * @return True if this is an entity node
+		 */		
+		 public function isEntity():Boolean {
+		 	return spriteid == DiagramMappings.ENTITY_SPRITE_ID;
+		 }
+		 				 
 		 /** Update the UID of this object, and recursively update the
 		 *   UID of the value type.
 		 * 

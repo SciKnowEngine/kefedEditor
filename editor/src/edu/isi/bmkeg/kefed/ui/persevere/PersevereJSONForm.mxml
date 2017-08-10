@@ -1,29 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- $Id$ 
-     $Date$
-     $Revision$ -->
+<!-- $Id: PersevereJSONForm.mxml 2490 2011-06-15 23:55:41Z tom $ 
+     $Date: 2011-06-15 16:55:41 -0700 (Wed, 15 Jun 2011) $
+     $Revision: 2490 $ -->
 <mx:Form xmlns:mx="http://www.adobe.com/2006/mxml" 
 		preinitialize="preinit();"
 		width="100%" height="100%">
 		
 	<mx:Script>
     <![CDATA[
-    	import mx.core.Application;
-    	import edu.isi.bmkeg.kefed.store.DataStoreEvent;
-    	import edu.isi.bmkeg.kefed.store.ModelStoreEvent;
-    	import edu.isi.bmkeg.kefed.store.IModelStore;
-    	import edu.isi.bmkeg.kefed.store.IDataStore;
-    	import edu.isi.bmkeg.kefed.elements.KefedExperiment;
-    	import edu.isi.bmkeg.kefed.store.json.JSONSerializer;
-        
-        import edu.isi.bmkeg.kefed.app.KefedAppEvent;
-        import edu.isi.bmkeg.kefed.app.KefedAppEventDispatcher;
-		
+		import edu.isi.bmkeg.kefed.elements.KefedExperiment;
+		import edu.isi.bmkeg.kefed.elements.KefedModel;
 		import edu.isi.bmkeg.kefed.elements.KefedObject;
-		import edu.isi.bmkeg.kefed.elements.KefedModel;	
-
+		import edu.isi.bmkeg.kefed.store.DataStoreEvent;
+		import edu.isi.bmkeg.kefed.store.IDataStore;
+		import edu.isi.bmkeg.kefed.store.IModelStore;
+		import edu.isi.bmkeg.kefed.store.ModelStoreEvent;
+		import edu.isi.bmkeg.kefed.store.json.JSONSerializer;
+		import edu.isi.bmkeg.kefed.ui.UiUtil;
+		
 		import mx.collections.ArrayCollection;
 		import mx.controls.Alert;
+		import mx.core.FlexGlobals;
 		import mx.rpc.events.FaultEvent;
 
 		[Bindable]
@@ -40,12 +37,15 @@
 
 		[Bindable]
 		public var dataTable:ArrayCollection;
-			
+
 		[Bindable]
 		public var modelStore:IModelStore;
 		
 		[Bindable]
 		public var dataStore:IDataStore;
+		
+		[Bindable]
+		private var messageText:String="";
 		
 		private var toInsert:int = 0;
 		private var inserted:int = 0;
@@ -74,6 +74,7 @@
 	    			models.addItem(JSONSerializer.deserializeKefedModelFromObject(o));
 	    		} else {
 	    			trace("Unknown object ", o);
+	    			Alert.show("Don't know how to handle object " + o.toString(), "Error");
 	    		}
 	    	}
 	    	return models;
@@ -81,6 +82,7 @@
     
 	    private function checkCurrentModel():void {
 	    	var models:ArrayCollection = getModels(codeBox.text);
+	    	messageText = models.length + " model(s)";
 			Alert.show(models.length + " " + models.toString());	
 	    }
 	    
@@ -104,7 +106,8 @@
 		private function handleInsert(e:Event):void {
 			inserted++;
 			trace("Inserted #", inserted, e.toString());
-//			Alert.show(e.toString());							
+			messageText = "Inserted " + inserted + " of " + toInsert + " model(s)";
+//			Alert.show(e.toString());
 		}
 		
 		private function saveOneModel(model:Object):void {
@@ -127,16 +130,19 @@
 		private function handleSave(e:Event):void {
 			added++;
 			trace("Saved #", added, e.toString());
+			messageText = "Saved " + added + " of " + toAdd + " model(s)";
 			// Alert.show(e.toString());							
 		}
 	
 		private function callError(e:FaultEvent):void {
-			trace("Error",e.message.toString());
-//			Alert.show(e.message.toString());				
+			trace("Error",UiUtil.getFaultURL(e) + " " + e.message.toString());
+			messageText = "Error " + UiUtil.getFaultURL(e) + " " + e.message.toString();
+//			Alert.show(UiUtil.getFaultURL(event) + "\n" + e.message.toString(), "Error");
+
 		}
 	    
 	    private function cancel():void {
-			Application.application.currentState = "Dashboard_State";				
+			FlexGlobals.topLevelApplication.currentState = "Dashboard_State";				
 		}
 	    
 	    
@@ -164,7 +170,8 @@
 
 	<mx:FormHeading label="Generic Persevere Interface"/>
 	<mx:FormItem direction="horizontal" height="100%" width="100%">
-		<mx:TextArea id="codeBox" text="{this.jsonCode}" height="100%" width="100%"/> 
+		<mx:TextArea id="codeBox" text="{this.jsonCode}" height="100%" width="100%"
+			valueCommit="messageText = '';"  /> 
 	</mx:FormItem>
 	<mx:FormItem>
 		<mx:HBox>						
@@ -175,6 +182,9 @@
 			<mx:Button id="saveButton" label="Save" click="saveModel();"/>
 			<mx:Button id="cancelButton" label="Cancel" click="cancel();"/>
 		</mx:HBox>
+	</mx:FormItem>
+	<mx:FormItem>
+		<mx:Label id="message" text="{messageText}"/>
 	</mx:FormItem>
 
 </mx:Form>

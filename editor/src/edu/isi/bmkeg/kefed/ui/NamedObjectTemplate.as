@@ -1,13 +1,14 @@
-// $Id$
+// $Id: NamedObjectTemplate.as 2500 2011-06-17 00:00:05Z tom $
 //
-//  $Date$
-//  $Revision$
+//  $Date: 2011-06-16 17:00:05 -0700 (Thu, 16 Jun 2011) $
+//  $Revision: 2500 $
 //
 package edu.isi.bmkeg.kefed.ui {
 	import com.kapit.diagram.view.DiagramObject;
 	import com.kapit.diagram.view.DiagramView;
 	
 	import edu.isi.bmkeg.kefed.elements.KefedObject;
+	import edu.isi.bmkeg.kefed.ontology.OntologySearchInterface;
 	
 	import mx.containers.Box;
 	import mx.controls.TextInput;
@@ -22,8 +23,8 @@ package edu.isi.bmkeg.kefed.ui {
 	 *  name changes from a TextInput component in a subclass.
 	 * 
 	 * @author University of Southern California
-	 * @date $Date$
-	 * @version $Revision$
+	 * @date $Date: 2011-06-16 17:00:05 -0700 (Thu, 16 Jun 2011) $
+	 * @version $Revision: 2500 $
 	 */
 
 	public class NamedObjectTemplate extends Box {
@@ -33,6 +34,12 @@ package edu.isi.bmkeg.kefed.ui {
 	
 		[Bindable]
 		public var diagram:DiagramView;
+		
+		/** Ontology search interface to be used for term lookup.
+		 *  Required for proper finding of ontology terms.
+		 */
+		[Bindable]
+		public var termLookupService:OntologySearchInterface;
 		
 		/** Monotonic controls whether only monotonic changes are allowed
 		 *  or whether all changes are allowed.  Monotonic changes only 
@@ -57,7 +64,7 @@ package edu.isi.bmkeg.kefed.ui {
 	        var name:String = StringUtil.trim(edit.text);        	
 	        var uid:String = myObject.uid;        	
 	      
-	      	// Update displayed diagram name for this object      
+	      	// Update displayed diagram name for this object
 	        var dob:DiagramObject = DiagramObject(diagram.getElementByDataObjectId(uid));
 	        if (dob.annotation)
 	           	dob.annotation.text = name;

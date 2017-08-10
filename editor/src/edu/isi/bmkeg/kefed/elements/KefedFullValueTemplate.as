@@ -1,7 +1,7 @@
-// $Id$
+// $Id: KefedFullValueTemplate.as 1180 2010-09-22 17:19:40Z tom $
 //
-//  $Date$
-//  $Revision$
+//  $Date: 2010-09-22 10:19:40 -0700 (Wed, 22 Sep 2010) $
+//  $Revision: 1180 $
 //
 
 package edu.isi.bmkeg.kefed.elements
@@ -14,8 +14,8 @@ package edu.isi.bmkeg.kefed.elements
 	 *   to also allow for multiple-slot composite values.
 	 * 
 	 * @author University of Southern California
-	 * @date $Date$
-	 * @version $Revision$
+	 * @date $Date: 2010-09-22 10:19:40 -0700 (Wed, 22 Sep 2010) $
+	 * @version $Revision: 1180 $
 	 * 
 	 */	
 	public class KefedFullValueTemplate extends KefedBaseValueTemplate

@@ -1,4 +1,4 @@
-// $Id$
+// $Id: JSONSerializer.as 2548 2011-07-06 22:59:32Z tom $
 package edu.isi.bmkeg.kefed.store.json {
 	import com.adobe.serialization.json.JSON;
 	
@@ -23,8 +23,8 @@ package edu.isi.bmkeg.kefed.store.json {
 	 *   and KefedExperiments for storage in the JSON framework.
 	 * 
 	 * @author University of Southern California
-	 * @date $Date$
-	 * @version $Revision$
+	 * @date $Date: 2011-07-06 15:59:32 -0700 (Wed, 06 Jul 2011) $
+	 * @version $Revision: 2548 $
 	 * 
 	 */	
 	public class JSONSerializer {
@@ -263,10 +263,12 @@ package edu.isi.bmkeg.kefed.store.json {
 			var clone:Object = new Object();
 			
 			clone._type = "OntologyReference";
-			clone.ontology = ref.ontology;
-			clone.ontologyIdentifier = ref.ontologyIdentifier;
-			clone.ontologyLocalName = ref.ontologyLocalName;
-			clone.termURL = ref.termURL;
+			clone.ontologyId = ref.ontologyId;
+			clone.ontology = ref.ontologyDisplayName;
+			clone.termId = ref.termId;
+			clone.localName = ref.localName;
+			clone.displayName = ref.displayName;
+//			clone.termURL = ref.termURL;
 			clone.description = ref.description;
 			
 			return clone;		
@@ -513,10 +515,12 @@ package edu.isi.bmkeg.kefed.store.json {
 		 	 str = stripAdditionalJsonCoding(str);	        	
 			
 			var holder:Object = JSON.decode(str);
-			if (holder.length == 0) { // No object in this string!
+			if (holder == null || holder.length == 0) { // No object in this string!
 				return null;
-			} else {
+			} else if (holder is Array) {
 				return holder[0];
+			} else {
+				return holder;
 			}
 		 }
         
@@ -698,10 +702,13 @@ package edu.isi.bmkeg.kefed.store.json {
          		// return new OntologyReference("", source.toString(), "");
          		return null; 
          	} else if (source is Object) {
-         		var ref:OntologyTermReference = new OntologyTermReference(source.ontology,
-         									 							  source.ontologyIdentifier,
-         									 							  source.ontologyLocalName);
-         		if (source.termURL) ref.termURL = source.termURL;
+         		var ref:OntologyTermReference = OntologyTermReference.create(source.ontologyId,
+         																	 source.ontologyDisplayName,
+         																	 source.termId,
+         									 							     source.displayName,
+         									 							     source.ontologyLocalName,
+         									 							     source.description);
+         	//	if (source.termURL) ref.termURL = source.termURL;
          		if (source.description) ref.description = source.description;
          		return ref;
          	} else {  // We shouldn't really get here.

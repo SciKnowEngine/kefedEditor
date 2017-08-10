@@ -1,4 +1,4 @@
-// $Id$
+// $Id: PersevereDataStore.as 2057 2011-03-30 01:12:31Z tom $
 
 package edu.isi.bmkeg.kefed.store.persevere
 {
@@ -25,8 +25,8 @@ package edu.isi.bmkeg.kefed.store.persevere
 	 *  of type DataStoreEvent.
 	 * 
 	 * @author University of Southern California
-	 * @date $Date$
-	 * @version $Revision$
+	 * @date $Date: 2011-03-29 18:12:31 -0700 (Tue, 29 Mar 2011) $
+	 * @version $Revision: 2057 $
 	 * 
 	 */	
 	 public class PersevereDataStore extends EventDispatcher implements IDataStore {
@@ -179,7 +179,7 @@ package edu.isi.bmkeg.kefed.store.persevere
 
 		private function faultEventHandler(event:FaultEvent):void {
 			dispatchEvent(event); 			
-		} 		
+		}
 		
 		
 	}

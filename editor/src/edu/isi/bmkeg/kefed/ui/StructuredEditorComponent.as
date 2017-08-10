@@ -1,15 +1,16 @@
-// $Id$
+// $Id: StructuredEditorComponent.as 2057 2011-03-30 01:12:31Z tom $
 //
-//  $Date$
-//  $Revision$
+//  $Date: 2011-03-29 18:12:31 -0700 (Tue, 29 Mar 2011) $
+//  $Revision: 2057 $
 //
 package edu.isi.bmkeg.kefed.ui {
+	import edu.isi.bmkeg.utils.DataUtil;
+	
 	import mx.containers.Box;
 	import mx.controls.dataGridClasses.DataGridListData;
 	import mx.controls.listClasses.BaseListData;
 	import mx.controls.listClasses.IDropInListItemRenderer;
 	import mx.controls.listClasses.IListItemRenderer;
-	import mx.controls.listClasses.ListBase;
 	import mx.controls.listClasses.ListData;
 	import mx.core.IDataRenderer;
 	import mx.events.FlexEvent;
@@ -30,8 +31,8 @@ package edu.isi.bmkeg.kefed.ui {
 	 *  This may later be extended to Tree controls as well.
 	 * 
 	 * @author University of Southern California
-	 * @date $Date$
-	 * @version $Revision$
+	 * @date $Date: 2011-03-29 18:12:31 -0700 (Tue, 29 Mar 2011) $
+	 * @version $Revision: 2057 $
 	 */
 	public class StructuredEditorComponent extends Box implements IDataRenderer, IDropInListItemRenderer, IListItemRenderer
 	{
@@ -88,35 +89,15 @@ package edu.isi.bmkeg.kefed.ui {
 	        var targetObject:Object;
 	
 	        if (_listData && _listData is DataGridListData)
-	            targetObject = getNestedValue(_data, DataGridListData(_listData).dataField);
+	            targetObject = DataUtil.getNestedValue(_data, DataGridListData(_listData).dataField);
 	        else if (_listData is ListData && ListData(_listData).labelField in _data)
-	            targetObject = getNestedValue(_data, ListData(_listData).labelField);
+	            targetObject = DataUtil.getNestedValue(_data, ListData(_listData).labelField);
 	        else
 	            targetObject = _data;
 	
 			dataItem = (targetObject is ObjectProxy) ? targetObject as ObjectProxy : new ObjectProxy(targetObject);
 	        dispatchEvent(new FlexEvent(FlexEvent.DATA_CHANGE));
 	    }	
-   		
-	    
-		/** Follows a chain of fieldNames separated by "." characters.
-		 *
-		 * @param obj The object to operate on
-		 * @param fieldName The fieldname to use for access
-		 * @return The end value from following the chain
-		 */
-		private function getNestedValue(obj:*, fieldName:String):* {
-			var dotIndex:int = fieldName.indexOf(".");
-			if (obj == null || obj == undefined) {
-				return obj;
-			} else if (dotIndex == -1) {
-				return obj[fieldName];
-			} else {
-				var first:String = fieldName.substring(0,dotIndex);
-				var rest:String  = fieldName.substring(dotIndex+1);
-				return getNestedValue(obj[first], rest);
-			}
-		}
 		
 	}
 }

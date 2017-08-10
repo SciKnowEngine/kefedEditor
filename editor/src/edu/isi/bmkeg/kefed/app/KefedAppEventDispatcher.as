@@ -1,7 +1,7 @@
-// $Id$
+// $Id: KefedAppEventDispatcher.as 328 2010-03-01 23:23:06Z tom $
 //
-//  $Date$
-//  $Revision$
+//  $Date: 2010-03-01 15:23:06 -0800 (Mon, 01 Mar 2010) $
+//  $Revision: 328 $
 //
 package edu.isi.bmkeg.kefed.app
 {

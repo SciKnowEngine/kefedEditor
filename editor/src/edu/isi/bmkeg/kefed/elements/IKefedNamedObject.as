@@ -5,8 +5,8 @@ package edu.isi.bmkeg.kefed.elements
 	/** Interface for KefedObjects that support a name, notes  and ontology terms.
 	 * 
 	 * @author University of Southern California
-	 * @date $Date$
-	 * @version $Revision$
+	 * @date $Date: 2011-01-03 17:05:27 -0800 (Mon, 03 Jan 2011) $
+	 * @version $Revision: 1524 $
 	 *
 	 */
 	[Bindable]

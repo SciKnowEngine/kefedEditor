@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- $Id$ 
-     $Date$
-     $Revision$ -->
+<!-- $Id: SimpleInputWindow.mxml 1223 2010-10-06 22:20:59Z tom $ 
+     $Date: 2010-10-06 15:20:59 -0700 (Wed, 06 Oct 2010) $
+     $Revision: 1223 $ -->
 <mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" 
 	layout="vertical" width="400" height="300"
 	title="Input Window"

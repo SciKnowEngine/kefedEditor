@@ -1,7 +1,7 @@
-// $Id$
+// $Id: DataEntryRelativeRegionFactory.as 1286 2010-10-19 20:48:51Z tom $
 //
-//  $Date$
-//  $Revision$
+//  $Date: 2010-10-19 13:48:51 -0700 (Tue, 19 Oct 2010) $
+//  $Revision: 1286 $
 //
 package edu.isi.bmkeg.kefed.ui
 {

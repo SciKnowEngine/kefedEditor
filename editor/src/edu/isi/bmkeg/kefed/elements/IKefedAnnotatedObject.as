@@ -5,8 +5,8 @@ package edu.isi.bmkeg.kefed.elements
 	/** Interface for KefedObjects that support a notes.
 	 * 
 	 * @author University of Southern California
-	 * @date $Date$
-	 * @version $Revision$
+	 * @date $Date: 2010-12-14 18:39:04 -0800 (Tue, 14 Dec 2010) $
+	 * @version $Revision: 1487 $
 	 *
 	 */
 	[Bindable]

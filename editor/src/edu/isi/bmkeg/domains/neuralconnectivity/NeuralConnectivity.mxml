@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- $Id$ 
-     $Date$
-     $Revision$ 
+<!-- $Id: NeuralConnectivity.mxml 2490 2011-06-15 23:55:41Z tom $ 
+     $Date: 2011-06-15 16:55:41 -0700 (Wed, 15 Jun 2011) $
+     $Revision: 2490 $ 
      
      Panel for displaying a connectivity matrix between brain regions and responding
      to requests for the underlying evidence that supports the connections.
@@ -10,28 +10,35 @@
 	label="Neural Connectivity">
 	<mx:Script>
 		<![CDATA[
-			import mx.formatters.NumberFormatter;
-			import mx.formatters.NumberBaseRoundType;
-			import flash.utils.getTimer;
-			import flash.net.navigateToURL;
-			import mx.controls.advancedDataGridClasses.AdvancedDataGridItemRenderer;
-			import mx.core.Application;
-			
-			import mx.events.ListEvent;
-			import mx.controls.advancedDataGridClasses.AdvancedDataGridColumn;
-			import mx.controls.Alert;
-			import mx.collections.ArrayCollection;
-			import mx.rpc.soap.WebService;
-			import mx.rpc.events.ResultEvent;
-			import mx.rpc.events.FaultEvent;
-			import mx.rpc.http.HTTPService;
+			import edu.isi.bmkeg.kefed.ui.UiUtil;
 			import edu.isi.bmkeg.utils.powerloom.PL;
 			
+			import flash.net.navigateToURL;
+			import flash.utils.getTimer;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.advancedDataGridClasses.AdvancedDataGridColumn;
+			import mx.controls.advancedDataGridClasses.AdvancedDataGridItemRenderer;
+			import mx.core.Application;
+			import mx.core.FlexGlobals;
+			import mx.events.ListEvent;
+			import mx.formatters.NumberBaseRoundType;
+			import mx.formatters.NumberFormatter;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.http.HTTPService;
+			import mx.rpc.soap.WebService;
+			
 			namespace plsoap = "http://www.isi.edu/powerloom/";
-			private var pdfURLhead:String = Application.application.serverUrl + "ploom/kefed/pdf/";
-			private var xmlURLhead:String = Application.application.serverUrl + "ploom/kefed/xml/TrainingOutput/config0254/";
+			
+			[Bindable]
+			public var plserver:String;
+			
+			private var pdfURLhead:String = FlexGlobals.topLevelApplication.serverUrl + "ploom/kefed/pdf/";
+			private var xmlURLhead:String = FlexGlobals.topLevelApplication.serverUrl + "ploom/kefed/xml/TrainingOutput/config0254/";
 			private var pubmedURLhead:String = "https://www.ncbi.nlm.nih.gov/pubmed/";
-			private var matrixURLhead:String = Application.application.serverUrl + "ploom/kbs/";
+			private var matrixURLhead:String = FlexGlobals.topLevelApplication.serverUrl + "ploom/kbs/";
 			private var loader:URLLoader = new URLLoader();
 			private var startTime:uint = 0;
 			
@@ -304,7 +311,10 @@
 
 			private function handleFault(event:FaultEvent):void
 			{
-				Alert.show(event.fault.faultString + "\n" + event.fault.faultDetail, "Error");
+				Alert.show(UiUtil.getFaultURL(event) + "\n"
+				           + event.fault.faultString + "\n"
+                                           + event.fault.faultDetail,
+					   "Error");
 			}
 
 		]]>
@@ -317,7 +327,7 @@
 	<mx:WebService id="evidenceWS"
 		fault="faultHandler(event);"
 		useProxy="false"
-		wsdl='{Application.application.serverUrl + "ploom/soap-wsdl/powerloom-soap-service.wsdl"}'
+		wsdl='{plserver + "ploom/soap-wsdl/powerloom-soap-service.wsdl"}'
 		showBusyCursor="true">
 		<mx:operation name="Retrieval"
 			resultFormat="e4x"
@@ -329,7 +339,7 @@
 		fault="handleFault(event);"
 		resultFormat="xml">
 	</mx:HTTPService>
-	
+
 	<mx:states>
 		<mx:State name="Show_Errors">
 			<mx:AddChild relativeTo="{content}">
@@ -346,13 +356,13 @@
 	<mx:VDividedBox id="content" width="100%" height="100%">
 		<mx:VBox id="matrixBox" height="70%">
 			<mx:AdvancedDataGrid id="connectionMatrix" width="100%" height="100%" 
-				 selectionMode="singleCell"
-				 doubleClickEnabled="true" itemDoubleClick="connectionDoubleClickHandler(event)"
-				 initialize="processMatrixData(matrixData);"/>
+			 	selectionMode="singleCell"
+			 	doubleClickEnabled="true" itemDoubleClick="connectionDoubleClickHandler(event)"
+			 	initialize="processMatrixData(matrixData);"/>
 			<mx:Label id="legend" fontSize="{LEGEND_SIZE}"
 				text="Connection strength: 0 = none; + = weak; ++ = moderate; +++ = strong; * = unknown strength     Double-click to see evidence for connection."/>
 		</mx:VBox>
-	    <mx:VBox id="evidenceBox" height="30%">
+		<mx:VBox id="evidenceBox" height="30%">
 			<mx:HBox>
 				<mx:Label id="connectionDescription" color="black" text=""/>
 				<mx:Label id="evidenceCount" color="black" text=""/>

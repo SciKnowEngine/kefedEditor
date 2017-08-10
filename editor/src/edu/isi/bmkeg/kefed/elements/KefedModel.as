@@ -1,7 +1,7 @@
-// $Id$
+// $Id: KefedModel.as 2490 2011-06-15 23:55:41Z tom $
 //
-//  $Date$
-//  $Revision$
+//  $Date: 2011-06-15 16:55:41 -0700 (Wed, 15 Jun 2011) $
+//  $Revision: 2490 $
 //
 package edu.isi.bmkeg.kefed.elements
 {
@@ -23,8 +23,8 @@ package edu.isi.bmkeg.kefed.elements
 	/**  KefedModel representation.
 	 * 
 	 * @author University of Southern California
-	 * @date $Date$
-	 * @version $Revision$
+	 * @date $Date: 2011-06-15 16:55:41 -0700 (Wed, 15 Jun 2011) $
+	 * @version $Revision: 2490 $
 	 * 
 	 *   NOTE: There is a need to also update 
 	 *   KefedPersevereInterface.deserializeKefedModel

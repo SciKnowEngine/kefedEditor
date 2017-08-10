@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- $Id$ 
-     $Date$
-     $Revision$ -->
+<!-- $Id: ConfirmDeleteDialog.mxml 2057 2011-03-30 01:12:31Z tom $ 
+     $Date: 2011-03-29 18:12:31 -0700 (Tue, 29 Mar 2011) $
+     $Revision: 2057 $ -->
 <mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" 
 	title="Confirm Delete" layout="absolute"	showCloseButton="true" 
 	close="closeWindow(event)" initialize="initializeHandler(event)"			
@@ -14,7 +14,6 @@
 			import mx.collections.ArrayCollection;
 			import mx.core.Application;
 			import mx.rpc.events.ResultEvent;
-			import mx.rpc.events.FaultEvent;
 			
 			import mx.managers.SystemManager;
 			

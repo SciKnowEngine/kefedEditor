@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- $Id$
-     $Date$
-     $Revision$  xmlns="http://www.isi.edu/bmkeg/"-->
+<!-- $Id: configuration-sample.xml 1594 2011-02-02 01:06:35Z tom $
+     $Date: 2011-02-01 17:06:35 -0800 (Tue, 01 Feb 2011) $
+     $Revision: 1594 $  xmlns="http://www.isi.edu/bmkeg/"-->
 <configuration>
   <!--  Configuration file for the Kefed Editor Flex applicaitons.
         This is used to set the compile-time options which will 
@@ -17,6 +17,13 @@
         The URL is used in the web service for communicating with
         the storage mechanism.  For persevere this is the URL used
         to store that particular type of item.
+        
+        The ontology lookup service options that are supported are the following:
+        o  ontologyLookupType which will be "ncbo" or "sparql".
+        For "sparql", the following additional parameters are available:
+        o  ontologyLookupUrl (required) specifies the URL of the SPARQL endpoint
+        o  ontologyLookupOntologyId (optional) ontology ID for a single ontology endpoint
+        o  ontologyLookupOntologyName (optional) ontology Name for a single ontology endpoint
 
         The callback URL and callback Function are options used for
         the KefedModelEditor and KefedModelNavigator to specify an
@@ -48,6 +55,16 @@
   <!--
   <schemaStoreType>persevere</schemaStoreType>
   <schemaStoreUrl>persevere/crux__yogo_model</schemaStoreUrl>
+  -->
+  
+  <ontologyLookupType>ncbo</ontologyLookupType>
+  
+  <!--
+  <ontologyLookupType>sparql</ontologyLookupType>
+  <ontologyLookupUrl>http://sparql.obo.neurocommons.org/sparql</ontologyLookupUrl>
+  <ontologyLookupUrl>http://localhost:30300/sparql</ontologyLookupUrl>
+  <ontologyLookupOntologyId></ontologyLookupOntologyId/>
+  <ontologyLookupOntologyName></ontologyLookupOntologyName>
   -->
 
   <!--

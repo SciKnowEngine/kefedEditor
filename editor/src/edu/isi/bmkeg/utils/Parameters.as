@@ -1,12 +1,12 @@
-// $Id$
+// $Id: Parameters.as 2490 2011-06-15 23:55:41Z tom $
 //
-//  $Date$
-//  $Revision$
+//  $Date: 2011-06-15 16:55:41 -0700 (Wed, 15 Jun 2011) $
+//  $Revision: 2490 $
 //
 
 package edu.isi.bmkeg.utils
 {
-	import mx.core.Application;
+	import mx.core.FlexGlobals;
 	import mx.managers.BrowserManager;
 	import mx.managers.IBrowserManager;
 	import mx.utils.URLUtil;
@@ -31,8 +31,8 @@ package edu.isi.bmkeg.utils
 	 *
 	 * 
 	 * @author University of Southern California
-	 * @date $Date$
-	 * @version $Revision$
+	 * @date $Date: 2011-06-15 16:55:41 -0700 (Wed, 15 Jun 2011) $
+	 * @version $Revision: 2490 $
 	 * 
 	 *   NOTE: There is a need to also update 
 	 *   KefedPersevereInterface.deserializeKefedModel
@@ -48,12 +48,14 @@ package edu.isi.bmkeg.utils
 		 * 
 		 *  The XML document is a simple one that uses the following
 		 *  structure:
-		 *  <?xml version="1.0" encoding="UTF-8"?>
-		 *  <parameters>
-		 *    <NAME1>VALUE1</NAME1>
-		 *    <NAME2>VALUE2</NAME2>
+		 *  <pre>
+		 *  &lt;?xml version="1.0" encoding="UTF-8"?&gt;
+		 *  &lt;parameters&gt;
+		 *    &lt;NAME1&gt;VALUE1&lt;/NAME1&gt;
+		 *    &lt;NAME2&gt;VALUE2&lt;/NAME2&gt;
 		 *    ...
-		 *  </parameters>
+		 *  &lt;/parameters&gt;
+		 *  </pre>
 		 * 
 		 * The parameters can either be accessed using the standard ActionScript
 		 * property accessor methods, or the method getValue defined below can be
@@ -118,7 +120,7 @@ package edu.isi.bmkeg.utils
 		 *  the application.
 		 */
 		private function addApplicationParameters ():void {
-			addParametersFromObject(Application.application.parameters);
+			addParametersFromObject(FlexGlobals.topLevelApplication.parameters);
 		}
 		
 		/** Adds the parameters that come from the XML object.

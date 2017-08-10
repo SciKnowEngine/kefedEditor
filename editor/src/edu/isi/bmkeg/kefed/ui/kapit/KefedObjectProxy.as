@@ -1,7 +1,7 @@
-// $Id$
+// $Id: KefedObjectProxy.as 1180 2010-09-22 17:19:40Z tom $
 //
-//  $Date$
-//  $Revision$
+//  $Date: 2010-09-22 10:19:40 -0700 (Wed, 22 Sep 2010) $
+//  $Revision: 1180 $
 //
 package edu.isi.bmkeg.kefed.ui.kapit
 {

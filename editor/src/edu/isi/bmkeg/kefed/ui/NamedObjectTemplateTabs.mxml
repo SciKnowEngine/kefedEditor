@@ -18,7 +18,9 @@
 	<mx:TabNavigator id="tn"  width="100%" height="100%">
 		<mx:Form label="Terms" width="100%" height="100%">
 			<OntologyIdFormItem label="Terms" direction="vertical" width="100%" height="100%"
-				myObject="{myObject}"/>
+				visible="{termLookupService != null}"
+				myObject="{myObject}"
+				termLookupService="{termLookupService}"/>
 		</mx:Form>
 		<NotesComponent label="Notes" width="100%" height="100%" myObject="{myObject}"/>
 	</mx:TabNavigator>

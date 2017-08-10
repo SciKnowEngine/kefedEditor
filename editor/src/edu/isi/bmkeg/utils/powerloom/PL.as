@@ -1,7 +1,7 @@
-// $Id$
+// $Id: PL.as 1594 2011-02-02 01:06:35Z tom $
 //
-//  $Date$
-//  $Revision$
+//  $Date: 2011-02-01 17:06:35 -0800 (Tue, 01 Feb 2011) $
+//  $Revision: 1594 $
 //
 
 package edu.isi.bmkeg.utils.powerloom
@@ -15,7 +15,26 @@ package edu.isi.bmkeg.utils.powerloom
 	public class PL {
 		namespace plsoap = "http://www.isi.edu/powerloom/";
 		
-		public static function displayQueryResults(xmlDoc:XML, results:DataGrid, countLabel:Label, formatCollection:Boolean=false): void {
+		/** Set the query results to display in a DataGrid.
+		 *  Handles parsing the results, formatting the columns and creating
+		 *  the array of objects with each object representing a tuple
+		 *  of the query answer.
+		 * 
+		 *  As an additional convenience, a label with the number or results
+		 *  can be updated, and the handling of PowerLoom collection answers
+		 *  can be specified.  If formatCollection is true, then LISTOF, SETOF,
+		 *  etc. will be formatted with commas rather than left as a PowerLoom
+		 *  form.
+		 * 
+		 *  Returns no values, but does update the results DataGrid and the
+		 *  optional label field.
+		 * 
+		 * @param xmlDoc The XML document with the PowerLoom query results
+		 * @param results The DataGrid used to display the query results
+		 * @param countLabel An label that can be set with a report of the number of results (optional)
+		 * @param formatCollection Flag to control expansion of collection values (optional)
+		 */
+		public static function displayQueryResults(xmlDoc:XML, results:DataGrid, countLabel:Label=null, formatCollection:Boolean=false): void {
 						
 			var nResults:int = int(xmlDoc.plsoap::nresults);
 			var pat:String = xmlDoc.plsoap::pattern;
