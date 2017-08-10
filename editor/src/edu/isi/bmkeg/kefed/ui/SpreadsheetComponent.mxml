@@ -288,7 +288,8 @@
 				addEventListener(KefedAppEvent.EDIT_DATA, loadModelEventListener);
 			}
 
-			// HACK TO FORCE INITIALIZATION OF THE MEASUREMENT VARIABLE CONTROL
+			// HACK TO FORCE INITIALIZATION OF VARIABLE CONTROLS
+			currentState = "Spreadsheet_State";
 			currentState = "MeasurementSpecification_State";
 
 		}
@@ -597,8 +598,8 @@
 
 		private function switchToSpreadsheet(): void {
 			if( this.activeVb.isMeasurement()) {
-				this.spreadsheet.text = this.buildDependentVariableSpreadSheet(activeVb);
 				currentState = "Spreadsheet_State";
+				this.spreadsheet.text = this.buildDependentVariableSpreadSheet(activeVb);
 			}
 		}
 
@@ -823,6 +824,9 @@
 								   label="Remove Row"
 								   enabled="{depVbData.selectedIndex != -1}"
 								   click="handleRemoveRowEditDependentVariableData()"/>
+						<mx:Button id="SwitchToBatchSpreadsheetButton"
+								   label="Batch"
+								   click="switchToSpreadsheet()"/>
 					</mx:HBox>
 				</mx:VBox>
 			</mx:AddChild>
