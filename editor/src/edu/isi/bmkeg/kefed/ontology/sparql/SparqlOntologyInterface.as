@@ -22,7 +22,10 @@ package edu.isi.bmkeg.kefed.ontology.sparql {
 	import mx.events.CollectionEvent;
 	import mx.events.CollectionEventKind;
 	import mx.managers.CursorManager;
+	import flash.events.Event;
 	import mx.rpc.events.FaultEvent;
+
+
 	import mx.rpc.events.ResultEvent;
 	import mx.rpc.http.HTTPService;
 	import mx.utils.URLUtil;

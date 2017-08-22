@@ -150,7 +150,7 @@ package edu.isi.bmkeg.kefed.store.json {
 														 includeId:Boolean):Object {
 			var clone:Object = new Object();
 			
-			clone._type = "KefedModel";
+			clone.utype = "KefedModel";
 			clone.kefedVersion = model.kefedVersion;
 			clone.uid = model.uid;
         	if(includeId)
@@ -195,7 +195,7 @@ package edu.isi.bmkeg.kefed.store.json {
 			// TODO: Update this when we have a different data structure for
 			//       the experiment objects
 			var o:Object = convertKefedModelToObject(experiment, includeId);
-			o._type = "KefedExperiment";
+			o.utype = "KefedExperiment";
 			o.designUid = experiment.designUid;
 			o.experimentData = convertKefedDataToObject(experiment.experimentData);
 			return o;
@@ -229,7 +229,7 @@ package edu.isi.bmkeg.kefed.store.json {
 		private static function convertKefedObjectToObject (obj:KefedObject):Object {
 			var clone:Object = new Object();
 
-			clone._type = "KefedObject";
+			clone.utype = "KefedObject";
 			clone.type = obj.type;
 			clone.spriteid = obj.spriteid;
 			clone.did = obj.did;
@@ -262,7 +262,7 @@ package edu.isi.bmkeg.kefed.store.json {
 		 private static function convertOntologyReferenceToObject(ref:OntologyTermReference):Object {
 			var clone:Object = new Object();
 			
-			clone._type = "OntologyReference";
+			clone.utype = "OntologyReference";
 			clone.ontologyId = ref.ontologyId;
 			clone.ontology = ref.ontologyDisplayName;
 			clone.termId = ref.termId;
@@ -284,7 +284,7 @@ package edu.isi.bmkeg.kefed.store.json {
 		private static function convertValueTemplateToObject(template:KefedBaseValueTemplate):Object {
 			var clone:Object = new Object();
 
-			clone._type = (template is KefedFullValueTemplate) ? "KefedFullValueTemplate" : "KefedBaseValueTemplate";
+			clone.utype = (template is KefedFullValueTemplate) ? "KefedFullValueTemplate" : "KefedBaseValueTemplate";
 			clone.nameValue = template.nameValue;
  			clone.valueTypeName = template.valueTypeName;
  			clone.termLookupFunction = template.termLookupFunction; 			
@@ -314,7 +314,7 @@ package edu.isi.bmkeg.kefed.store.json {
 		 private static function convertFieldTemplateToObject(template:KefedFieldTemplate):Object {
 			var clone:Object = new Object();
 			
-			clone._type = "KefedFieldTemplate";
+			clone.utype = "KefedFieldTemplate";
 			clone.nameValue = template.nameValue;
 			clone.uid = template.uid;
 			clone.notes = template.notes;
@@ -358,7 +358,7 @@ package edu.isi.bmkeg.kefed.store.json {
          */        
         private static function copyEdge (sourceEdge:KefedLink):Object {
         	var edge:Object = new Object();
-        	edge._type = "KefedLink";
+        	edge.utype = "KefedLink";
 			edge.uid = sourceEdge.uid;
 			if (sourceEdge.source) edge.start = (sourceEdge.source as KefedObject).uid;
 			if (sourceEdge.target) edge.end = (sourceEdge.target as KefedObject).uid;

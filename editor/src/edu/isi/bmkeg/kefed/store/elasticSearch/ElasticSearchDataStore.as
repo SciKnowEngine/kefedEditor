@@ -77,7 +77,7 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 		 * 
 		 */
 		public function listData():void {
-			listService.url = serviceUrl + "_search?fields=modelName,type&size=1000";
+            listService.url = serviceUrl + "listData";
 			trace(listService.url)
 			listService.send();
 		}
@@ -85,19 +85,13 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 		private function listResultEventHandler(event:ResultEvent):void {
 			var s:String = String(listService.lastResult);	
 			var o:Object = JSON.decode(s);
-			
-			if( o.hits != null && o.hits.hits != null ) {
-				var hits:ArrayCollection = new ArrayCollection(o.hits.hits);
-				var experimentList:ArrayCollection = new ArrayCollection();
-				for each (var hit:Object in hits) {
-					var o:Object = new Object();
-					o.modelName = hit["fields"]["modelName"][0];
-					o.type = hit["fields"]["type"][0];
-					o.uid = hit['_id'];
-					experimentList.addItem(o);
-				}
-				dispatchEvent(new DataStoreEvent(DataStoreEvent.LIST, null, experimentList));			
-			}
+
+            var experimentList:ArrayCollection = new ArrayCollection();
+            if(o.length == 1)
+                experimentList = new ArrayCollection(Array(o[0]));
+
+            dispatchEvent(new DataStoreEvent(DataStoreEvent.LIST, null, experimentList));
+
 		}
 		
 		/** List the experiments that are present in the store and
@@ -120,20 +114,19 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 		 * 
 		 */		
 		public function retrieveData(uid:String):void {
-			retrieveService.url = serviceUrl + uid;
+			retrieveService.url = serviceUrl + "/retrieveData?uid=" + uid;
 			retrieveService.send();
 		}
 		
 		private function loadResultEventHandler(event:ResultEvent):void {
-			
-			var str:String = String(retrieveService.lastResult);
+
+            var str:String = String(retrieveService.lastResult);
 			var patt:RegExp = /\s*\\n\s*/g; 
 			str = str.replace(patt, "");
 			var o:Object = JSON.decode(str);
 			var experiment:KefedExperiment = JSONSerializer
-				.deserializeKefedExperimentFromObject(o['_source']);
-			experiment.id = o['_id'];
-			dispatchEvent(new DataStoreEvent(DataStoreEvent.RETRIEVE, experiment, null));						
+				.deserializeKefedExperimentFromObject(o);
+			dispatchEvent(new DataStoreEvent(DataStoreEvent.RETRIEVE, experiment, null));
 			
 		}
 		
@@ -148,7 +141,7 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 		 */
 		public function insertData(experiment:KefedExperiment):void {
 			experiment.updateTime();
-			insertService.url = serviceUrl;
+			insertService.url = serviceUrl + "insertData";
 			insertService.request = JSONSerializer.serializeKefedExperiment(experiment, false);
 			insertService.send();
 		}
@@ -156,9 +149,11 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 		private function insertResultEventHandler(event:ResultEvent):void {
 			// We could do this to get the experiment and then add it to the event, 
 			// but will all stores be able to handle it?
-			// var str:String = String(retrieveService.lastResult);
-			// var experiment:KefedExperiment = ElasticSearchStoreUtil.deserializeKefedExperiment(str);
-			dispatchEvent(new DataStoreEvent(DataStoreEvent.INSERT, null, null));	
+
+            var str:String = String(insertService.lastResult);
+            str = "[" + str.substring(1,str.length-1) + "]"; // Hack for parser.
+            var experiment:KefedExperiment = JSONSerializer.deserializeKefedExperiment(str);
+            dispatchEvent(new DataStoreEvent(DataStoreEvent.INSERT, experiment, null));
 		}		
 		
 		
@@ -173,7 +168,7 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 		 */
 		public function saveData(experiment:KefedExperiment):void {
 			experiment.updateTime();
-			saveService.url = serviceUrl + encodeURIComponent(experiment.id);
+			saveService.url = serviceUrl + "saveData";
 			saveService.request = JSONSerializer.serializeKefedExperiment(experiment);
 			saveService.send();
 		}
@@ -181,7 +176,6 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 		private function saveResultEventHandler(event:ResultEvent):void {
 			dispatchEvent(new DataStoreEvent(DataStoreEvent.SAVE));	
 		}
-		
 		
 		/** Delete the experiment that matches the given UID.  Returns
 		 *  immediately and dispatches a DataStoreEvent
@@ -192,7 +186,7 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 		 * 
 		 */
 		public function deleteData(uid:String):void	{
-			deleteService.url = serviceUrl + uid;
+			deleteService.url = serviceUrl + "deleteModel?uid=" + uid;
 			deleteService.send();
 		}
 		
@@ -205,5 +199,5 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 		} 				
 		
 	}
-	
+
 }

@@ -29,7 +29,7 @@ package edu.isi.bmkeg.kefed.store.elasticSearch {
 			
 			es.useProxy = false;
 			es.resultFormat = "text";
-			es.contentType = "application/javascript";
+			es.contentType = "application/json";
 			es.method = method;
 			es.addEventListener(ResultEvent.RESULT, resultHandler);
 			es.addEventListener(FaultEvent.FAULT, faultHandler);

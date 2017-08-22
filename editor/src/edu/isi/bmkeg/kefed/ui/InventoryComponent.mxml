@@ -409,7 +409,7 @@
 		}
 		
 		private function importLoadCompleted(evt:Event):void {
-			// trace("File size = " + fileRef.data.length);
+			trace("File size = " + importFileRef.data.length);
 			try {
 				var jsonText:String = importFileRef.data.readMultiByte(importFileRef.data.length, "iso-8859-1");
 				var m:KefedModel = JSONSerializer.deserializeKefedModel(jsonText);

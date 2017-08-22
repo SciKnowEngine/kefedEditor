@@ -35,8 +35,9 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 	public class ElasticSearchModelStore extends EventDispatcher implements IModelStore
 	{
 		private var serviceUrl:String;
-		
-		private var listService:HTTPService;
+
+        private var refreshService:HTTPService;
+        private var listService:HTTPService;
 		private var retrieveService:HTTPService;
 		private var insertService:HTTPService;
 		private var saveService:HTTPService;
@@ -61,12 +62,13 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 				url += "/";
 			}	
 			this.serviceUrl = url;
-			
-			listService = ElasticSearchStoreUtil.initService("GET", listResultEventHandler, faultEventHandler);
+
+            refreshService = ElasticSearchStoreUtil.initService("GET", refreshEventHandler, faultEventHandler);
+            listService = ElasticSearchStoreUtil.initService("GET", listResultEventHandler, faultEventHandler);
 			retrieveService = ElasticSearchStoreUtil.initService("GET", loadResultEventHandler, faultEventHandler);
 			insertService = ElasticSearchStoreUtil.initService("POST", insertResultEventHandler, faultEventHandler);
 			saveService = ElasticSearchStoreUtil.initService("POST", saveResultEventHandler, faultEventHandler);
-			deleteService = ElasticSearchStoreUtil.initService("DELETE", deleteResultEventHandler, faultEventHandler);
+			deleteService = ElasticSearchStoreUtil.initService("GET", deleteResultEventHandler, faultEventHandler);
 			// copyService = ElasticSearchStoreUtil.initService("GET", copyResultEventHandler, faultEventHandler);
 		}
 		
@@ -77,29 +79,27 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 		 * 
 		 */
 		public function listModels():void {
-			listService.url = serviceUrl + "_search?fields=modelName&size=1000";
+			listService.url = serviceUrl + "listModels";
 			listService.send();
 		}
 		
 		private function listResultEventHandler(event:ResultEvent):void {
 			var s:String = String(listService.lastResult);	
 			var o:Object = JSON.decode(s);
-			
-			if( o.hits != null && o.hits.hits != null ) {
-				var hits:ArrayCollection = new ArrayCollection(o.hits.hits);
-				var modelList:ArrayCollection = new ArrayCollection();
-				for each (var hit:Object in hits) {
-					var o:Object = new Object();
-					o.modelName = hit["fields"]["modelName"][0];
-					o.uid = hit['_id'];
-					modelList.addItem(o);
-				}
-				dispatchEvent(new ModelStoreEvent(ModelStoreEvent.LIST, null, modelList));			
-			}
-			
+
+            var modelList:ArrayCollection = new ArrayCollection();
+			if(o.length == 1)
+	            modelList = new ArrayCollection(Array(o[0]));
+
+			dispatchEvent(new ModelStoreEvent(ModelStoreEvent.LIST, null, modelList));
+
 		}
-		
-		/** Load the model that matches the given UID.  Returns
+
+        private function refreshEventHandler(event:ResultEvent):void {
+			// refresh the elasticsearch index
+        }
+
+        /** Load the model that matches the given UID.  Returns
 		 *  after starting the load and dispatches a ModelStoreEvent
 		 *  with type ModelStoreEvent.LOAD when loading is complete.
 		 *  Otherwise dispatches a ModelStoreEvent.ERROR event.
@@ -108,7 +108,7 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 		 * 
 		 */
 		public function retrieveModel(uid:String):void {
-			retrieveService.url = serviceUrl + uid;
+			retrieveService.url = serviceUrl + "/retrieveModel?uid=" + uid;
 			retrieveService.send();
 		}
 		
@@ -117,8 +117,7 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 			var patt:RegExp = /\s*\\n\s*/g; 
 			str = str.replace(patt, "");
 			var o:Object = JSON.decode(str);
-			var model:KefedModel = JSONSerializer.deserializeKefedModelFromObject(o['_source']);					
-			model.id = o['_id'];
+			var model:KefedModel = JSONSerializer.deserializeKefedModelFromObject(o);
 			dispatchEvent(new ModelStoreEvent(ModelStoreEvent.RETRIEVE, model, null));						
 		}
 		
@@ -132,9 +131,9 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 		 * 
 		 */
 		public function insertModel(model:KefedModel):void {
-			insertService.url = serviceUrl;
+			insertService.url = serviceUrl + "insertModel";
 			insertService.request = JSONSerializer.serializeKefedModel(model, false);
-			insertService.send();
+            insertService.send();
 		}
 		
 		private function insertResultEventHandler(event:ResultEvent):void {
@@ -156,7 +155,7 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 		 * 
 		 */
 		public function saveModel(model:KefedModel):void {
-			saveService.url = serviceUrl + encodeURIComponent(model.id);
+			saveService.url = serviceUrl + "saveModel";
 			saveService.request = JSONSerializer.serializeKefedModel(
 				model, 
 				true
@@ -177,7 +176,7 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 		 * 
 		 */
 		public function deleteModel(uid:String):void {
-			deleteService.url = serviceUrl + uid;
+			deleteService.url = serviceUrl + "deleteModel?uid="+uid;
 			deleteService.send();
 		}
 		

@@ -25,11 +25,10 @@ package edu.isi.bmkeg.kefed.ontology.bioportal
 	
 	public class NCBOBioPortalInterface extends OntologySearchInterface {
 		
-		private static var BASE_URL:String = "http://rest.bioontology.org/bioportal/";
+		private static var BASE_URL:String = "http://data.bioontology.org/search?format=xml&ontologies=OBI&q=";
 		private static var OBO_ONTOLOGIES:Array = ["CHEBI", "CL", "DOID", "FIX", "FMA",
             										  "GO", "IAO", "OBI", "OBO_REL", "PATO",
-            										  "PRO", "REX", "UO"
-													  /* , "BFO", "ECO", "HP" */
+            										  "PRO", "REX", "UO", "BFO", "ECO", "HP"
 												  ];
 		private static var OBO_ONTOLOGY_IDSTRING:String = "1007,1006,1009,1014,1053,1070,1393,1123,1042,1107,1062,1043,1112";
 		
@@ -43,7 +42,7 @@ package edu.isi.bmkeg.kefed.ontology.bioportal
 		/** API key for NCBO restful web services calls
 		 */
 		[Bindable]
-		public var apikey:String = "af39dd48-ba3e-43a0-bf72-461030d945d8";
+		public var apikey:String = "ccbb4f5f-b8d9-4dff-8490-108ca643ba74";
 
 		
 		override public function get name():String {
@@ -60,15 +59,13 @@ package edu.isi.bmkeg.kefed.ontology.bioportal
 		
 		
 		public function NCBOBioPortalInterface() {
-						
 			this.initNcboSearch();
 			this.initNcboListOntologies();
-				
 		}
 		
 		private function createNcboService ():HTTPService {
 			var service:HTTPService = new HTTPService();
-		 	service.useProxy = true;
+		 	service.useProxy = false;
 			service.destination="DefaultHTTP";
 		 	service.resultFormat = "text";
 			service.contentType = "application/javascript";
@@ -102,9 +99,9 @@ package edu.isi.bmkeg.kefed.ontology.bioportal
 			var ontologyRestriction:String = (oboOnly) ? "&ontologyids=" + OBO_ONTOLOGY_IDSTRING : "";
 		 	ncboSearchService.url = BASE_URL + "search/" 
 		 			+ encodeURIComponent(term)
-		 			+ "?isexactmatch=" + exactStr 
-		 			+ "&includeproperties=" + propStr 
-		 			+ ontologyRestriction
+		 			//+ "&isexactmatch=" + exactStr
+		 			//+ "&includeproperties=" + propStr
+		 			//+ ontologyRestriction
 		 			+ "&apikey=" + apikey; 	 	
 		 	CursorManager.setBusyCursor();
 			ncboSearchService.send();
@@ -191,8 +188,8 @@ package edu.isi.bmkeg.kefed.ontology.bioportal
 		}		
 
 		override public function listOntologies():void {
-		 	CursorManager.setBusyCursor();
-			ncboListOntologiesService.send();
+		 	//CursorManager.setBusyCursor();
+			//ncboListOntologiesService.send();
 		}
 
 		private function ncboListOntologiesEventHandler(event:ResultEvent):void {

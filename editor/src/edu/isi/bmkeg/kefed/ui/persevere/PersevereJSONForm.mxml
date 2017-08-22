@@ -68,9 +68,9 @@
         private function getModels(source:String):ArrayCollection {
  			var models:ArrayCollection = new ArrayCollection();
 	    	for each (var o:Object in JSONSerializer.deserializeJsonList(source)) {
-	    		if (o._type == "KefedExperiment") {
+	    		if (o.utype == "KefedExperiment") {
 	    			models.addItem(JSONSerializer.deserializeKefedExperimentFromObject(o));
-	    		} else if (o._type == "KefedModel" || o._type == null) {
+	    		} else if (o.utype == "KefedModel" || o.utype == null) {
 	    			models.addItem(JSONSerializer.deserializeKefedModelFromObject(o));
 	    		} else {
 	    			trace("Unknown object ", o);
