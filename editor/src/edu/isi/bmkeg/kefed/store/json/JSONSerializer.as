@@ -15,8 +15,10 @@ package edu.isi.bmkeg.kefed.store.json {
 	import edu.isi.bmkeg.utils.DataUtil;
 	
 	import flash.utils.Dictionary;
-	
-	import mx.collections.ArrayCollection;
+
+import mx.collections.ArrayCollection;
+
+import mx.collections.ArrayCollection;
 	import mx.controls.Alert;
 	
 	/**  Implementation of a serialization protocol for KefedModels
@@ -81,8 +83,13 @@ package edu.isi.bmkeg.kefed.store.json {
 			var s:String = JSON.encode(o);
 			return s;
 		}
-		
-		/** Serialize a kefed experiment for JSON/Persevere.
+
+        public static function serializeKefedModelList(modelList:Array, includeId:Boolean=true):String {
+            var s:String = JSON.encode(modelList);
+            return s;
+        }
+
+            /** Serialize a kefed experiment for JSON/Persevere.
 		 *  Copy the fields to be saved into a new generic object
 		 *  because that is what the storage mechanism knows how to
 		 *  store.  It doesn't handle specialized objects.
@@ -99,10 +106,10 @@ package edu.isi.bmkeg.kefed.store.json {
 		 */		
 		public static function serializeKefedExperiment(model:KefedExperiment, includeId:Boolean=true):String {
 			var o:Object = convertKefedExperimentToObject(model, includeId);
+			o.experimentData = model.experimentData;
 			var s:String = JSON.encode(o);
 			return s;
 		}
-		
 		
 		/** Convert one of the Kefed types to a generic object.  We dispatch on 
 		 *  the type here to simulate a dynamic method dispatch.  This could be
@@ -398,8 +405,9 @@ package edu.isi.bmkeg.kefed.store.json {
 		 * @return the KefedModel built from this string, or null if no model is present.
 		 * 
 		 */
-		public static function deserializeKefedModel(str:String):KefedModel {
-			return deserializeKefedModelFromObject(stringToJsonObject(str));
+		public static function deserializeKefedModel(str:String):ArrayCollection {
+			var coll:ArrayCollection = deserializeKefedModelListFromObject(stringToJsonObject(str));
+			return coll;
 		}
 
 		/** Constructs a KefedModel object by copying over the fields from 
@@ -407,68 +415,80 @@ package edu.isi.bmkeg.kefed.store.json {
 		 * 
 		 * @param o The generic object representation of the Kefed Model
 		 * @return The corresponding KefedModel
-		 */			
-		public static function deserializeKefedModelFromObject(o:Object):KefedModel {
+		 */
+		public static function deserializeKefedModelListFromObject(o:Object):ArrayCollection {
 			if (o == null) {
 				return null;
-			} else {
-		       	trace("Deserialize kefed model", o.modelName," id=" + o.id + " version=" + o.kefedVersion);
-				var model:KefedModel = new KefedModel();
-		       	var diagramXml:XML = new XML(o.diagramXML);
-		       	DataUtil.updateXmlTagAttributes(diagramXml, "sprite", "spriteid", spriteIdMapping);
-		       	DataUtil.updateXmlTagAttributes(diagramXml, "panel", "title", {"Default title":"Kefed Model"});
-		       	DataUtil.updateXmlTagAttributes(diagramXml, "lane", "title", {"Default title":"Kefed Model"});
-	 	
-				var idStr:String = String(o.id);
-				var idPos:int = idStr.indexOf("/");
-				model.id = String(o.id).substr(idPos+1, idStr.length-idPos);
-	       		model.diagramXML = diagramXml;
-			
-				model.modelName = o.modelName;
-				model.description = o.description;
-				model.dateTime = o.dateTime;
-				model.source = o.source;
-				model.citeKey = o.citeKey;
-				model.type = o.type;
-				model.uid = o.uid;
-				
-				var nDict:Dictionary = new Dictionary();   // Keep a UID -> KefedObject map.
-				//
-				// Add all the appropriate nodes and store them in the node dictionary.
-				//
-				if( o.nodes ) {						
-					var nodeArray:Object = o.nodes;
-					for(var i:int=0; i<nodeArray.length; i++) {
-						var kObj:KefedObject = deserializeKefedObject(nodeArray[i]);
-						nDict[kObj.uid] = kObj;
-						model.addNode(kObj);
-					}
+			} else if( o is Array ) {
+				var ac:ArrayCollection = new ArrayCollection();
+				for( var i:int=0; i<o.length; i++) {
+					ac.addItem(o[i]);
 				}
-	
-				// Add all the appropriate edges taking care to connect
-				// the appropriate edge objects from their UIDs using
-				// the node dictionary.
-				if( o.edges ) {
-					var linkArray:Object = o.edges;
-					for(var k:int=0; k<linkArray.length; k++) {
-						var lObj:Object = linkArray[k];
-						
-						var s:KefedObject = KefedObject(nDict[lObj.start]);
-						var t:KefedObject = KefedObject(nDict[lObj.end]);
-	
-						var l:KefedLink = new KefedLink(lObj.uid, s, t);
-											
-						model.addEdge(l);
-						if (s != null) s.addOutEdge(l);
-						if (t != null) t.addInEdge(l);
-					}
-				}	
-				return model;
-			}	
+				return ac;
+			}
+			return null;
         }
-        
-        
-		/** Takes a string describing a JSON encoded generic object for a
+
+        public static function deserializeKefedModelFromObject(o:Object):KefedModel {
+            if (o == null) {
+                return null;
+            }
+			trace("Deserialize kefed model", o.modelName," id=" + o.id + " version=" + o.kefedVersion);
+			var model:KefedModel = new KefedModel();
+			var diagramXml:XML = new XML(o.diagramXML);
+			DataUtil.updateXmlTagAttributes(diagramXml, "sprite", "spriteid", spriteIdMapping);
+			DataUtil.updateXmlTagAttributes(diagramXml, "panel", "title", {"Default title":"Kefed Model"});
+			DataUtil.updateXmlTagAttributes(diagramXml, "lane", "title", {"Default title":"Kefed Model"});
+
+			var idStr:String = String(o.id);
+			var idPos:int = idStr.indexOf("/");
+			model.id = String(o.id).substr(idPos+1, idStr.length-idPos);
+			model.diagramXML = diagramXml;
+
+			model.modelName = o.modelName;
+			model.description = o.description;
+			model.dateTime = o.dateTime;
+			model.source = o.source;
+			model.citeKey = o.citeKey;
+			model.type = o.type;
+			model.uid = o.uid;
+
+			var nDict:Dictionary = new Dictionary();   // Keep a UID -> KefedObject map.
+			//
+			// Add all the appropriate nodes and store them in the node dictionary.
+			//
+			if( o.nodes ) {
+				var nodeArray:Object = o.nodes;
+				for(var i:int=0; i<nodeArray.length; i++) {
+					var kObj:KefedObject = deserializeKefedObject(nodeArray[i]);
+					nDict[kObj.uid] = kObj;
+					model.addNode(kObj);
+				}
+			}
+
+			// Add all the appropriate edges taking care to connect
+			// the appropriate edge objects from their UIDs using
+			// the node dictionary.
+			if( o.edges ) {
+				var linkArray:Object = o.edges;
+				for(var k:int=0; k<linkArray.length; k++) {
+					var lObj:Object = linkArray[k];
+
+					var s:KefedObject = KefedObject(nDict[lObj.start]);
+					var t:KefedObject = KefedObject(nDict[lObj.end]);
+
+					var l:KefedLink = new KefedLink(lObj.uid, s, t);
+
+					model.addEdge(l);
+					if (s != null) s.addOutEdge(l);
+					if (t != null) t.addInEdge(l);
+				}
+			}
+			return model;
+        }
+
+
+        /** Takes a string describing a JSON encoded generic object for a
 		 *  KefedExperiment and converts it into a properly formed KefedExperiment
 		 *  object by creating the proper types
 		 * 
@@ -496,11 +516,12 @@ package edu.isi.bmkeg.kefed.store.json {
 				var exp:KefedExperiment = new KefedExperiment(model, false);
 				exp.id = model.id;
 				exp.designUid = o.designUid;
-				if (o.experimentData != null) {
+                exp.experimentData = deserializeExperimentalData(o.experimentData);
+				/*if (o.experimentData != null) {
 				   exp.experimentData = deserializeExperimentalData(o.experimentData);
 				} else {
 				   updateStoredData(exp);
-				}
+				}*/
 				return exp;
 			}
 		}
@@ -517,8 +538,6 @@ package edu.isi.bmkeg.kefed.store.json {
 			var holder:Object = JSON.decode(str);
 			if (holder == null || holder.length == 0) { // No object in this string!
 				return null;
-			} else if (holder is Array) {
-				return holder[0];
 			} else {
 				return holder;
 			}
@@ -762,8 +781,13 @@ package edu.isi.bmkeg.kefed.store.json {
         private static function deserializeExperimentalData(source:Object):Object {
         	var data:Object = new Object();
         	for (var key:String in source) {
-        		var a:Array = source[key] as Array;
-        		data[key] = new ArrayCollection(source[key] as Array);
+                var rows:ArrayCollection = new ArrayCollection();
+				var variableObjectTable:Object = source[key];
+                for (var rowIndexStr:String in source[key]) {
+					var rowIndex:int = int(rowIndexStr);
+					rows.addItemAt(variableObjectTable[rowIndexStr],rowIndex);
+                }
+                data[key] = rows;
         	}
         	return data;
         }

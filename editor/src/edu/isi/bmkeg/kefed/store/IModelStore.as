@@ -5,8 +5,10 @@ package edu.isi.bmkeg.kefed.store
 	import edu.isi.bmkeg.kefed.elements.KefedModel;
 	
 	import flash.events.IEventDispatcher;
-	
-	/** Interface for Kefed model store implementations.  These
+
+import mx.collections.ArrayCollection;
+
+/** Interface for Kefed model store implementations.  These
 	 *  will use asynchronous transactions, which means that users
 	 *  will need to register appropriate event listeners to get
 	 *  the results of any operations.  The events signalled will be
@@ -36,8 +38,7 @@ package edu.isi.bmkeg.kefed.store
 		 * 
 		 */
 		function retrieveModel(uid:String):void;
-		
-				
+
 		/** Insert the model.  Assumes that this model does not already
 		 *  exist in the store.   Returns after starting the insertion
 		 *  and dispatches a ModelStoreEvent  with type 
@@ -47,8 +48,19 @@ package edu.isi.bmkeg.kefed.store
 		 * @param model The model to save to the store
 		 * 
 		 */
-		function insertModel(model:KefedModel):void;
-		
+        function insertModel(model:KefedModel):void;
+
+		/** Insert a list of models.  Assume that these models does not already
+		 *  exist in the store.   Returns after starting the insertion
+		 *  and dispatches a ModelStoreEvent  with type
+		 *  ModelStoreEvent.INSERT when loading is complete.
+		 *  Otherwise dispatches a ModelStoreEvent.ERROR event.
+		 *
+		 * @param model The model to save to the store
+		 *
+		 */
+        function insertModelList(modelList:Array):void;
+
 		/** Save the model.  Assumes that there is already a model
 		 *  present that will be replaced.   Returns after starting
 		 *  the save and dispatches a ModelStoreEvent

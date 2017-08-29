@@ -98,8 +98,9 @@ package edu.isi.bmkeg.kefed.store.persevere
 		
 		private function loadResultEventHandler(event:ResultEvent):void {
 			var str:String = String(retrieveService.lastResult);
-			var model:KefedModel = JSONSerializer.deserializeKefedModel(str);
-			dispatchEvent(new ModelStoreEvent(ModelStoreEvent.RETRIEVE, model, null));						
+            var coll:ArrayCollection = JSONSerializer.deserializeKefedModel(str)
+            var model:KefedModel = coll.getItemAt(0);
+			dispatchEvent(new ModelStoreEvent(ModelStoreEvent.RETRIEVE, model, null));
 		}
 		
 		/** Insert the model.  Assumes that this model does not already
@@ -116,14 +117,15 @@ package edu.isi.bmkeg.kefed.store.persevere
 			insertService.request = JSONSerializer.serializeKefedModel(model, false);
 			insertService.send();
 		}
-		
+
 		private function insertResultEventHandler(event:ResultEvent):void {
+            }
 			// We could do this to get the model and then add it to the event, 
 			// but will all stores be able to handle it?
 			var str:String = String(insertService.lastResult);
-			str = "[" + str.substring(1,str.length-1) + "]"; // Hack for parser.
-			var model:KefedModel = JSONSerializer.deserializeKefedModel(str);
-			dispatchEvent(new ModelStoreEvent(ModelStoreEvent.INSERT, model, null));	
+            var coll:ArrayCollection = JSONSerializer.deserializeKefedModel(str)
+            var model:KefedModel = coll.getItemAt(0);
+            dispatchEvent(new ModelStoreEvent(ModelStoreEvent.INSERT, model, null));
 		}		
 		
 		/** Save the model.  Assumes that there is already a model
@@ -165,6 +167,11 @@ package edu.isi.bmkeg.kefed.store.persevere
 		// TODO: Make this dispatch a ModelStoreEvent.ERROR event?
 		private function faultEventHandler(event:FaultEvent):void {
 			dispatchEvent(event); 			
-		} 		
+		}
+
+		public function insertModelList(modelList:ArrayCollection):void {
+    		var instantiateSomething:String = "";
+		}
+
 	}
 }

@@ -39,7 +39,8 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
         private var refreshService:HTTPService;
         private var listService:HTTPService;
 		private var retrieveService:HTTPService;
-		private var insertService:HTTPService;
+        private var insertService:HTTPService;
+        private var insertListService:HTTPService;
 		private var saveService:HTTPService;
 		private var deleteService:HTTPService;
 		// private var copyService:HTTPService;
@@ -66,8 +67,8 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
             refreshService = ElasticSearchStoreUtil.initService("GET", refreshEventHandler, faultEventHandler);
             listService = ElasticSearchStoreUtil.initService("GET", listResultEventHandler, faultEventHandler);
 			retrieveService = ElasticSearchStoreUtil.initService("GET", loadResultEventHandler, faultEventHandler);
-			insertService = ElasticSearchStoreUtil.initService("POST", insertResultEventHandler, faultEventHandler);
-			saveService = ElasticSearchStoreUtil.initService("POST", saveResultEventHandler, faultEventHandler);
+            insertService = ElasticSearchStoreUtil.initService("POST", insertResultEventHandler, faultEventHandler);
+            saveService = ElasticSearchStoreUtil.initService("POST", saveResultEventHandler, faultEventHandler);
 			deleteService = ElasticSearchStoreUtil.initService("GET", deleteResultEventHandler, faultEventHandler);
 			// copyService = ElasticSearchStoreUtil.initService("GET", copyResultEventHandler, faultEventHandler);
 		}
@@ -88,8 +89,9 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 			var o:Object = JSON.decode(s);
 
             var modelList:ArrayCollection = new ArrayCollection();
-			if(o.length == 1)
-	            modelList = new ArrayCollection(Array(o[0]));
+			for( var i:int=0; i<o.length; i++) {
+                modelList.addItem(o[i]);
+            }
 
 			dispatchEvent(new ModelStoreEvent(ModelStoreEvent.LIST, null, modelList));
 
@@ -135,17 +137,26 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 			insertService.request = JSONSerializer.serializeKefedModel(model, false);
             insertService.send();
 		}
-		
+
+        public function insertModelList(modelList:Array):void {
+            insertService.url = serviceUrl + "insertModelList";
+            insertService.request = JSONSerializer.serializeKefedModelList(modelList, false);
+            insertService.send();
+        }
+
 		private function insertResultEventHandler(event:ResultEvent):void {
 			// We could do this to get the model and then add it to the event, 
 			// but will all stores be able to handle it?
 			var str:String = String(insertService.lastResult);
 			str = "[" + str.substring(1,str.length-1) + "]"; // Hack for parser.
-			var model:KefedModel = JSONSerializer.deserializeKefedModel(str);
-			dispatchEvent(new ModelStoreEvent(ModelStoreEvent.INSERT, model, null));	
-		}		
-		
-		/** Save the model.  Assumes that there is already a model
+
+            var coll:ArrayCollection = JSONSerializer.deserializeKefedModel(str)
+            var model:KefedModel = KefedModel(coll.getItemAt(0));
+
+			dispatchEvent(new ModelStoreEvent(ModelStoreEvent.INSERT, model, null));
+		}
+
+        /** Save the model.  Assumes that there is already a model
 		 *  present that will be replaced.   Returns after starting
 		 *  the save and dispatches a ModelStoreEvent
 		 *  with type ModelStoreEvent.SAVE when loading is complete.

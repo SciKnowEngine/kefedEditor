@@ -32,16 +32,16 @@
 
 		[Bindable]
 		public var modelStore:IModelStore;
-		
+
 		[Bindable]
-	    public var schemaStore:IModelStore = null;
-	    
-	    [Bindable]
-     	public var dataStore:IDataStore; 
-		
+		public var schemaStore:IModelStore = null;
+
+		[Bindable]
+		public var dataStore:IDataStore;
+
 		[Bindable]
 		private var templateList:ArrayCollection;
-		
+
 		[Bindable]
 		public var ontologyList:ArrayCollection;
 
@@ -50,15 +50,15 @@
 
 		[Bindable]
 		private var experimentList:ArrayCollection;
-		
+
 		[Bindable]
 		private var experiment:KefedExperiment;
-		
+
 		[Bindable]
 		private var designCountText:String = "0 designs";
 		[Bindable]
 		private var experimentCountText:String = "0 experiments";
-		
+
 		/** File references used for importing and exporting models or experiments.
 		 *   Needs to be a field so that the scope is maintained
 		 *   across multiple method calls.  Just extracting the
@@ -74,7 +74,7 @@
 		//        are Model and Experiment.
 		private var newDesignPopup:NewKefedTemplateDialog;
 		private var newExperimentPopup:NewKefedExperimentDialog;
-		
+
 		// Flags to control behavior of the selection lists after they
 		// have been refreshed.  If this is true, then the last item
 		// in the list is selected.  This will be set true after adding
@@ -82,105 +82,105 @@
 		private var selectLastModel:Boolean = false;
 		private var selectLastExperiment:Boolean = false;
 
-    	public function init():void {
-    		
-			FlexGlobals.topLevelApplication.addEventListener(KeyboardEvent.KEY_DOWN, checkKeys);
-    		
-    		modelStore.addEventListener(ModelStoreEvent.LIST, handleListKefedTemplates);
-    		modelStore.addEventListener(ModelStoreEvent.RETRIEVE, handleLoadKefedTemplate);
-    		modelStore.addEventListener(ModelStoreEvent.DELETE, handleDeleteKefedTemplate);
-    		modelStore.addEventListener(ModelStoreEvent.INSERT, handleInsertKefedTemplate);
-    		modelStore.addEventListener(ModelStoreEvent.SAVE, handleSaveKefedTemplate);
-    		modelStore.addEventListener(FaultEvent.FAULT, callError);
+		public function init():void {
 
-    		dataStore.addEventListener(DataStoreEvent.LIST, handleListKefedExperiments);
-    		dataStore.addEventListener(DataStoreEvent.RETRIEVE, handleLoadKefedExperiment);
-    		dataStore.addEventListener(DataStoreEvent.DELETE, handleDeleteKefedExperiment);
-    		dataStore.addEventListener(DataStoreEvent.INSERT, handleInsertKefedExperiment);
-    		dataStore.addEventListener(DataStoreEvent.SAVE, handleSaveKefedExperiment);
-    		dataStore.addEventListener(FaultEvent.FAULT, callError);
-    		    		    		
-    		if(FlexGlobals.topLevelApplication.eventDispatcher != null ) {
-    			var ed:EventDispatcher = FlexGlobals.topLevelApplication.eventDispatcher;
+			FlexGlobals.topLevelApplication.addEventListener(KeyboardEvent.KEY_DOWN, checkKeys);
+
+			modelStore.addEventListener(ModelStoreEvent.LIST, handleListKefedTemplates);
+			modelStore.addEventListener(ModelStoreEvent.RETRIEVE, handleLoadKefedTemplate);
+			modelStore.addEventListener(ModelStoreEvent.DELETE, handleDeleteKefedTemplate);
+			modelStore.addEventListener(ModelStoreEvent.INSERT, handleInsertKefedTemplate);
+			modelStore.addEventListener(ModelStoreEvent.SAVE, handleSaveKefedTemplate);
+			modelStore.addEventListener(FaultEvent.FAULT, callError);
+
+			dataStore.addEventListener(DataStoreEvent.LIST, handleListKefedExperiments);
+			dataStore.addEventListener(DataStoreEvent.RETRIEVE, handleLoadKefedExperiment);
+			dataStore.addEventListener(DataStoreEvent.DELETE, handleDeleteKefedExperiment);
+			dataStore.addEventListener(DataStoreEvent.INSERT, handleInsertKefedExperiment);
+			dataStore.addEventListener(DataStoreEvent.SAVE, handleSaveKefedExperiment);
+			dataStore.addEventListener(FaultEvent.FAULT, callError);
+
+			if (FlexGlobals.topLevelApplication.eventDispatcher != null) {
+				var ed:EventDispatcher = FlexGlobals.topLevelApplication.eventDispatcher;
 				ed.addEventListener(KefedAppEvent.SAVE_DATA_EDIT, saveEditedExperiment);
 				ed.addEventListener(KefedAppEvent.SAVE_DESIGN_EDIT, saveEditedModel);
 				ed.addEventListener(KefedAppEvent.CANCEL_DESIGN_EDIT, returnToDashboard);
 				ed.addEventListener(KefedAppEvent.CANCEL_DATA_EDIT, returnToDashboard);
 			}
-		    		
+
 		}
 
 		private function checkKeys(e:KeyboardEvent):void {
-			
-			if( e.charCode == 20) { // Control-T
+
+			if (e.charCode == 20) { // Control-T
 				FlexGlobals.topLevelApplication.currentState = "Dashboard_State";
 			} else if (e.charCode == 10) { // Control-J
 				FlexGlobals.topLevelApplication.currentState = "JSONform";
-			} else if (e.charCode == 14 ) { // Control-N
+			} else if (e.charCode == 14) { // Control-N
 				FlexGlobals.topLevelApplication.currentState = "Connectivity_State";
-			} else if (e.charCode == 16 ) { // Control-P
+			} else if (e.charCode == 16) { // Control-P
 				FlexGlobals.topLevelApplication.currentState = "PowerLoomForm";
 			}
 		}
 
-    	public function refresh(e:Event=null):void {
-    		CursorManager.setBusyCursor();
+		public function refresh(e:Event = null):void {
+			CursorManager.setBusyCursor();
 			modelStore.listModels();
 			CursorManager.setBusyCursor(); // Set again, since each handler pops one.
-    		dataStore.listData();		
-    	}
-    	
-    	/** Respond to changes in the template selection window by
-    	 *  enabling and disabling the action buttons that require a
-    	 *  selection.
-    	 * 
-    	 *  TODO: Should this change be coordinated with the models
-    	 *  displayed in the experiment window?  It would seem that 
-    	 *  might make the display a bit more scalable, especially if
-    	 *  there end up being a lot of experiments of a particular type.
-    	 *  Perhaps make that a user-selectable option? 
-    	 *
-    	 * @param evt The event
-    	 */
-    	private function handleTemplateChange (evt:Event):void {
-    		if (templateGrid != null) {
-	    		var enable:Boolean = (templateGrid.selectedIndex != -1);
-	    		copyDesignButton.enabled = enable;
-	    		editDesignButton.enabled = enable;
-	    		deleteDesignButton.enabled = enable;
+			dataStore.listData();
+		}
+
+		/** Respond to changes in the template selection window by
+		 *  enabling and disabling the action buttons that require a
+		 *  selection.
+		 *
+		 *  TODO: Should this change be coordinated with the models
+		 *  displayed in the experiment window?  It would seem that
+		 *  might make the display a bit more scalable, especially if
+		 *  there end up being a lot of experiments of a particular type.
+		 *  Perhaps make that a user-selectable option?
+		 *
+		 * @param evt The event
+		 */
+		private function handleTemplateChange(evt:Event):void {
+			if (templateGrid != null) {
+				var enable:Boolean = (templateGrid.selectedIndex != -1);
+				copyDesignButton.enabled = enable;
+				editDesignButton.enabled = enable;
+				deleteDesignButton.enabled = enable;
 				exportDesignButton.enabled = enable;
-	    		}	
-    	}
+			}
+		}
 
-   		/** Respond to changes in the model/data selection window by
-    	 *  enabling and disabling the action buttons that require a
-    	 *  selection
-    	 *
-    	 * @param evt The event
-    	 */
-    	private function handleExperimentChange (evt:Event):void {
-    		if (experimentGrid != null) {
-	    		var enable:Boolean = (experimentGrid.selectedIndex != -1);
-	    		copyExperimentButton.enabled = enable;
-	    		editExperimentButton.enabled = enable;
-	    		deleteExperimentButton.enabled = enable;
+		/** Respond to changes in the model/data selection window by
+		 *  enabling and disabling the action buttons that require a
+		 *  selection
+		 *
+		 * @param evt The event
+		 */
+		private function handleExperimentChange(evt:Event):void {
+			if (experimentGrid != null) {
+				var enable:Boolean = (experimentGrid.selectedIndex != -1);
+				copyExperimentButton.enabled = enable;
+				editExperimentButton.enabled = enable;
+				deleteExperimentButton.enabled = enable;
 				exportExperimentButton.enabled = enable;
-   		}
-    	}
+			}
+		}
 
-		
+
 		/**
 		 * New Templates
 		 */
-		private function newTemplate():void {			
+		private function newTemplate():void {
 			newDesignPopup = PopUpManager.createPopUp(this, NewKefedTemplateDialog, true) as NewKefedTemplateDialog;
-	        newDesignPopup.title = "Create new KEfED Design";
+			newDesignPopup.title = "Create new KEfED Design";
 			newDesignPopup.addEventListener(CloseEvent.CLOSE, closeNewTemplateDialog);
 			newDesignPopup.OkButton.addEventListener(MouseEvent.CLICK, insertNewTemplate);
 			newDesignPopup.cancelButton.addEventListener(MouseEvent.CLICK, closeNewTemplateDialog);
 			mx.managers.PopUpManager.centerPopUp(newDesignPopup);
 		}
-		
+
 		private function insertNewTemplate(e:Event):void {
 			if (newDesignPopup.Name.text != null && newDesignPopup.Name.text != "") {
 				CursorManager.setBusyCursor();
@@ -196,11 +196,11 @@
 			}
 			closeNewTemplateDialog(e);
 		}
-		
+
 		private function closeNewTemplateDialog(e:Event):void {
 			mx.managers.PopUpManager.removePopUp(newDesignPopup);
 		}
-		
+
 		private function handleInsertKefedTemplate(e:ModelStoreEvent):void {
 			trace("Insert Template Handler");
 			modelStore.listModels();
@@ -209,19 +209,19 @@
 		/**
 		 * Delete a Template
 		 */
-		private function deleteTemplate():void {	
-			
+		private function deleteTemplate():void {
+
 			deletePopup = ConfirmDeleteDialog(
 					PopUpManager.createPopUp(this, ConfirmDeleteDialog, true));
-					
+
 			deletePopup.addEventListener("close", cancelDeleteTemplate);
-            deletePopup["cancelButton"].addEventListener("click", cancelDeleteTemplate);   
-            deletePopup["okButton"].addEventListener("click", confirmDeleteTemplate); 
-			mx.managers.PopUpManager.centerPopUp(deletePopup);		
-			
+			deletePopup["cancelButton"].addEventListener("click", cancelDeleteTemplate);
+			deletePopup["okButton"].addEventListener("click", confirmDeleteTemplate);
+			mx.managers.PopUpManager.centerPopUp(deletePopup);
+
 		}
 
-		private function confirmDeleteTemplate(event:MouseEvent):void {	
+		private function confirmDeleteTemplate(event:MouseEvent):void {
 			var i:int = templateGrid.selectedIndex;
 			var o:Object = templateList[i];
 			var uid:String = o.uid;
@@ -230,14 +230,14 @@
 			PopUpManager.removePopUp(deletePopup);
 		}
 
-		private function cancelDeleteTemplate(event:MouseEvent):void {	
+		private function cancelDeleteTemplate(event:MouseEvent):void {
 			PopUpManager.removePopUp(deletePopup);
 		}
 
 		private function handleDeleteKefedTemplate(e:ModelStoreEvent):void {
 			modelStore.listModels();
 		}
-		
+
 		/**
 		 * Copy a Template
 		 */
@@ -252,9 +252,9 @@
 			modelStore.addEventListener(ModelStoreEvent.RETRIEVE, handleCopyKefedTemplate);
 			modelStore.retrieveModel(uid);
 		}
-		
-		private function handleCopyKefedTemplate (e:ModelStoreEvent):void {
-			trace("Copy template handler",e," model=",e.model);
+
+		private function handleCopyKefedTemplate(e:ModelStoreEvent):void {
+			trace("Copy template handler", e, " model=", e.model);
 			var model:KefedModel = e.model.clone();
 			model.modelName = model.modelName + " copy";
 			model.updateTime();
@@ -281,13 +281,13 @@
 			if (i > -1) {
 				var o:Object = templateList[i];
 				var uid:String = o.uid;
-				trace("Load model from uid",uid);
+				trace("Load model from uid", uid);
 				CursorManager.setBusyCursor();
 				modelStore.retrieveModel(uid);
-				trace("Finished loading call",uid);
+				trace("Finished loading call", uid);
 			}
 		}
-		
+
 		private function handleListKefedTemplates(e:ModelStoreEvent):void {
 			// trace("Handle List Templates");
 			CursorManager.removeBusyCursor();
@@ -302,21 +302,20 @@
 				templateGrid.scrollToIndex(templateGrid.selectedIndex);
 				selectLastModel = false;
 			}
-			handleTemplateChange(e);		
-		}		
+			handleTemplateChange(e);
+		}
 
 		private function handleLoadKefedTemplate(e:ModelStoreEvent):void {
-			trace("Load template handler",e," model=",e.model);
+			trace("Load template handler", e, " model=", e.model);
 			CursorManager.removeBusyCursor();
 			this.template = e.model;
-			
-			if(FlexGlobals.topLevelApplication.eventDispatcher != null ) {
+
+			if (FlexGlobals.topLevelApplication.eventDispatcher != null) {
 				FlexGlobals.topLevelApplication.currentState = "Design_State";
-				FlexGlobals.topLevelApplication.eventDispatcher.
-						dispatchBioScholarEvent(KefedAppEvent.EDIT_DESIGN, this.template);
+				FlexGlobals.topLevelApplication.eventDispatcher.dispatchBioScholarEvent(KefedAppEvent.EDIT_DESIGN, this.template);
 			}
 		}
-		
+
 		private function saveEditedModel(e:Event):void {
 			CursorManager.setBusyCursor();
 			this.template.updateTime();
@@ -325,13 +324,13 @@
 				schemaStore.saveModel(this.template);
 			}
 		}
-		
+
 		private function handleSaveKefedTemplate(e:ModelStoreEvent):void {
 			CursorManager.removeBusyCursor();
 			this.refresh();
 		}
-		
-		/** 
+
+		/**
 		 * Import or Export templates
 		 */
 		private function exportTemplate(e:Event):void {
@@ -347,8 +346,8 @@
 			}
 		}
 
-		private function handleExportKefedTemplate (e:ModelStoreEvent):void {
-			trace("Export template handler",e," model=",e.model);
+		private function handleExportKefedTemplate(e:ModelStoreEvent):void {
+			trace("Export template handler", e, " model=", e.model);
 			CursorManager.removeBusyCursor();
 			modelStore.removeEventListener(ModelStoreEvent.RETRIEVE, handleExportKefedTemplate);
 			modelStore.addEventListener(ModelStoreEvent.RETRIEVE, handleLoadKefedTemplate);
@@ -363,29 +362,29 @@
 			newDesignPopup.addEventListener(CloseEvent.CLOSE, closeNewTemplateDialog);
 			newDesignPopup.OkButton.addEventListener(MouseEvent.CLICK, exportCurrentTemplate);
 			newDesignPopup.cancelButton.addEventListener(MouseEvent.CLICK, closeNewTemplateDialog);
-			mx.managers.PopUpManager.centerPopUp(newDesignPopup);			
+			mx.managers.PopUpManager.centerPopUp(newDesignPopup);
 		}
-		
-		private function exportCurrentTemplate (evt:Event):void {
+
+		private function exportCurrentTemplate(evt:Event):void {
 			mx.managers.PopUpManager.removePopUp(newDesignPopup);
 			exportFileRef = new FileReference();
 			exportFileRef.addEventListener(Event.COMPLETE, exportTemplateCompleted);
 			exportFileRef.addEventListener(Event.CANCEL, exportTemplateCanceled);
 			var defaultFilename:String = template.modelName.replace(/ /g, "-") + ".json";
-			exportFileRef.save(JSONSerializer.serializeKefedModel(template,false), defaultFilename);
+			exportFileRef.save(JSONSerializer.serializeKefedModel(template, false), defaultFilename);
 		}
 
-		
+
 		private function exportTemplateCompleted(evt:Event):void {
 			exportDesignButton.enabled = true;
 			exportFileRef = null; // Release resources
 		}
-		
+
 		private function exportTemplateCanceled(evt:Event):void {
 			exportDesignButton.enabled = true;
 			exportFileRef = null; // Release resources
 		}
-		
+
 		private function importTemplate(e:Event):void {
 			importFileRef = new FileReference();
 			importFileRef.addEventListener(Event.SELECT, importFileSelected);
@@ -398,7 +397,7 @@
 				Alert.show("Error reading file data: " + error, "ERROR");
 			}
 		}
-		
+
 		private function importFileSelected(evt:Event):void {
 			// trace("Selected, preparing to load. name=" + fileRef.name + " date=" + fileRef.creationDate);
 			try {
@@ -407,53 +406,57 @@
 				Alert.show("Error reading file data: " + error, "ERROR");
 			}
 		}
-		
+
 		private function importLoadCompleted(evt:Event):void {
 			trace("File size = " + importFileRef.data.length);
 			try {
 				var jsonText:String = importFileRef.data.readMultiByte(importFileRef.data.length, "iso-8859-1");
-				var m:KefedModel = JSONSerializer.deserializeKefedModel(jsonText);
-				m.updateUID();
+				var coll:ArrayCollection = JSONSerializer.deserializeKefedModel(jsonText)
+				var models:ArrayCollection = new ArrayCollection();
+				for each(var o:Object in coll) {
+					if(o.type == 'template') {
+						models.addItem(o);
+					}
+				}
 				modelStore.removeEventListener(ModelStoreEvent.INSERT, handleInsertKefedTemplate);
 				modelStore.addEventListener(ModelStoreEvent.INSERT, handleInsertImportedTemplate);
 				CursorManager.setBusyCursor();
-				modelStore.insertModel(m);
+				modelStore.insertModelList(models.toArray());
 			} catch (error:Error) {
 				Alert.show("Error reading file data: " + error, "ERROR");
 			}
-			
-			importFileRef=null; // To free data storage.
+
+			importFileRef = null; // To free data storage.
 		}
 
-		
+
 		private function handleInsertImportedTemplate(evt:Event):void {
 			CursorManager.removeBusyCursor();
 			modelStore.removeEventListener(ModelStoreEvent.INSERT, handleInsertImportedTemplate);
 			modelStore.addEventListener(ModelStoreEvent.INSERT, handleInsertKefedTemplate);
 			this.refresh(evt);
 		}
-		
-		
+
 
 		/**
 		 * New experiments
 		 */
-		private function newExperiment():void {			
+		private function newExperiment():void {
 			newExperimentPopup = PopUpManager.createPopUp(this, NewKefedExperimentDialog, true) as NewKefedExperimentDialog;
-		    newExperimentPopup.title = "Add New KEfED Experiment...";
+			newExperimentPopup.title = "Add New KEfED Experiment...";
 			newExperimentPopup.templateList = this.templateList;
-		    if (templateGrid != null) {
-		    	newExperimentPopup.Type.selectedIndex = templateGrid.selectedIndex;
-			    if (templateGrid.selectedIndex != -1) { // If a template is selected, use it to pre-populate the menu.
-		    		newExperimentPopup.setFieldsForType(this.templateList.getItemAt(templateGrid.selectedIndex));
-		   		}
-		   	}
+			if (templateGrid != null) {
+				newExperimentPopup.Type.selectedIndex = templateGrid.selectedIndex;
+				if (templateGrid.selectedIndex != -1) { // If a template is selected, use it to pre-populate the menu.
+					newExperimentPopup.setFieldsForType(this.templateList.getItemAt(templateGrid.selectedIndex));
+				}
+			}
 			newExperimentPopup.addEventListener(CloseEvent.CLOSE, closeNewExperimentDialog);
 			newExperimentPopup.OkButton.addEventListener(MouseEvent.CLICK, insertNewExperiment);
 			newExperimentPopup.cancelButton.addEventListener(MouseEvent.CLICK, closeNewExperimentDialog);
 			mx.managers.PopUpManager.centerPopUp(newExperimentPopup);
 		}
-		
+
 		private function insertNewExperiment(e:Event):void {
 			if (newExperimentPopup.Name.text != null && newExperimentPopup.Name.text != "") {
 				CursorManager.setBusyCursor();
@@ -465,14 +468,14 @@
 				modelStore.retrieveModel(uid);
 			}
 		}
-		
+
 		private function closeNewExperimentDialog(e:Event):void {
 			mx.managers.PopUpManager.removePopUp(newExperimentPopup);
 		}
-		
-		private function handleNewKefedExperiment (e:ModelStoreEvent):void {
-			trace("Copy model for new experiment handler",e," model=",e.model);
-			var exp:KefedExperiment = new KefedExperiment(e.model,true);
+
+		private function handleNewKefedExperiment(e:ModelStoreEvent):void {
+			trace("Copy model for new experiment handler", e, " model=", e.model);
+			var exp:KefedExperiment = new KefedExperiment(e.model, true);
 			exp.id = null;
 			exp.modelName = newExperimentPopup.Name.text;
 			exp.source = newExperimentPopup.Source.text;
@@ -487,30 +490,30 @@
 			selectLastExperiment = true;
 			mx.managers.PopUpManager.removePopUp(newExperimentPopup);
 		}
-	
-		
+
+
 		private function handleInsertKefedExperiment(e:DataStoreEvent):void {
 			trace("Insert Experiment Handler");
 			dataStore.listData();
 		}
-		
+
 
 		/**
 		 * Delete an Experiment
 		 */
-		private function deleteExperiment():void {	
-			
+		private function deleteExperiment():void {
+
 			deletePopup = ConfirmDeleteDialog(
 					PopUpManager.createPopUp(this, ConfirmDeleteDialog, true));
-					
+
 			deletePopup.addEventListener("close", cancelDeleteExperiment);
-            deletePopup["cancelButton"].addEventListener("click", cancelDeleteExperiment);   
-            deletePopup["okButton"].addEventListener("click", confirmDeleteExperiment); 
-			mx.managers.PopUpManager.centerPopUp(deletePopup);		
-			
+			deletePopup["cancelButton"].addEventListener("click", cancelDeleteExperiment);
+			deletePopup["okButton"].addEventListener("click", confirmDeleteExperiment);
+			mx.managers.PopUpManager.centerPopUp(deletePopup);
+
 		}
 
-		private function confirmDeleteExperiment(event:MouseEvent):void {	
+		private function confirmDeleteExperiment(event:MouseEvent):void {
 			var i:int = experimentGrid.selectedIndex;
 			var o:Object = experimentList[i];
 			var uid:String = o.uid;
@@ -519,7 +522,7 @@
 			PopUpManager.removePopUp(deletePopup);
 		}
 
-		private function cancelDeleteExperiment(event:MouseEvent):void {	
+		private function cancelDeleteExperiment(event:MouseEvent):void {
 			PopUpManager.removePopUp(deletePopup);
 		}
 
@@ -544,8 +547,8 @@
 			}
 			handleExperimentChange(e);
 		}
-		
-		/** 
+
+		/**
 		 * Copy an Experiment
 		 */
 		private function copyExperiment():void {
@@ -559,9 +562,9 @@
 			modelStore.addEventListener(ModelStoreEvent.RETRIEVE, handleCopyKefedExperiment);
 			modelStore.retrieveModel(uid);
 		}
-		
-		private function handleCopyKefedExperiment (e:ModelStoreEvent):void {
-			trace("Copy template handler",e," model=",e.model);
+
+		private function handleCopyKefedExperiment(e:ModelStoreEvent):void {
+			trace("Copy template handler", e, " model=", e.model);
 			var exp:KefedExperiment = KefedExperiment(e.model.clone());
 			exp.modelName = experiment.modelName + " copy";
 			exp.updateUID();
@@ -576,7 +579,7 @@
 		 */
 		private function editExperiment():void {
 			var i:int = experimentGrid.selectedIndex;
-			
+
 			// Sometimes a double click will be registered in response to
 			// double clicks with a modifier key down.
 			// cause a selection on the first click, followed by a de-selection
@@ -592,22 +595,21 @@
 				dataStore.retrieveData(uid);
 			}
 		}
-		
+
 		private function handleLoadKefedExperiment(e:DataStoreEvent):void {
 			cursorManager.removeBusyCursor();
 			this.experiment = e.experiment;
-			
-			if(FlexGlobals.topLevelApplication.eventDispatcher != null ) {
+
+			if (FlexGlobals.topLevelApplication.eventDispatcher != null) {
 				FlexGlobals.topLevelApplication.currentState = "ExperimentData_State";
-				FlexGlobals.topLevelApplication.eventDispatcher.
-						dispatchBioScholarEvent(KefedAppEvent.EDIT_DATA, this.experiment);
+				FlexGlobals.topLevelApplication.eventDispatcher.dispatchBioScholarEvent(KefedAppEvent.EDIT_DATA, this.experiment);
 			}
 		}
-		
+
 		/**
 		 * Save an Experiment
 		 */
-		
+
 		private function saveEditedExperiment(e:Event):void {
 			cursorManager.setBusyCursor();
 			this.experiment.updateTime();
@@ -618,8 +620,8 @@
 			cursorManager.removeBusyCursor();
 			this.refresh();
 		}
-		
-		/** 
+
+		/**
 		 * Import or Export experiments
 		 */
 
@@ -635,9 +637,9 @@
 				exportExperimentButton.enabled = false;
 			}
 		}
-		
-		private function handleExportKefedExperiment (e:DataStoreEvent):void {
-			trace("Export template handler",e," model=",e.experiment);
+
+		private function handleExportKefedExperiment(e:DataStoreEvent):void {
+			trace("Export template handler", e, " model=", e.experiment);
 			CursorManager.removeBusyCursor();
 			dataStore.removeEventListener(DataStoreEvent.RETRIEVE, handleExportKefedExperiment);
 			dataStore.addEventListener(DataStoreEvent.RETRIEVE, handleLoadKefedExperiment);
@@ -655,29 +657,29 @@
 			newExperimentPopup.addEventListener(CloseEvent.CLOSE, closeNewExperimentDialog);
 			newExperimentPopup.OkButton.addEventListener(MouseEvent.CLICK, exportCurrentExperiment);
 			newExperimentPopup.cancelButton.addEventListener(MouseEvent.CLICK, closeNewExperimentDialog);
-			mx.managers.PopUpManager.centerPopUp(newExperimentPopup);			
+			mx.managers.PopUpManager.centerPopUp(newExperimentPopup);
 		}
-		
-		private function exportCurrentExperiment (evt:Event):void {
+
+		private function exportCurrentExperiment(evt:Event):void {
 			mx.managers.PopUpManager.removePopUp(newExperimentPopup);
 			exportFileRef = new FileReference();
 			exportFileRef.addEventListener(Event.COMPLETE, exportExperimentCompleted);
 			exportFileRef.addEventListener(Event.CANCEL, exportExperimentCanceled);
 			var defaultFilename:String = experiment.modelName.replace(/ /g, "-") + ".json";
-			exportFileRef.save(JSONSerializer.serializeKefedExperiment(experiment,false), defaultFilename);
+			exportFileRef.save(JSONSerializer.serializeKefedExperiment(experiment, false), defaultFilename);
 		}
-		
-		
+
+
 		private function exportExperimentCompleted(evt:Event):void {
 			exportExperimentButton.enabled = true;
 			exportFileRef = null; // Release resources
 		}
-		
+
 		private function exportExperimentCanceled(evt:Event):void {
 			exportExperimentButton.enabled = true;
 			exportFileRef = null; // Release resources
 		}
-		
+
 		private function importExperiment(e:Event):void {
 			importFileRef = new FileReference();
 			importFileRef.addEventListener(Event.SELECT, importFileSelected);
@@ -690,7 +692,7 @@
 				Alert.show("Error reading file data: " + error, "ERROR");
 			}
 		}
-		
+
 		private function importExperimentLoadCompleted(evt:Event):void {
 			// trace("File size = " + fileRef.data.length);
 			try {
@@ -704,18 +706,18 @@
 			} catch (error:Error) {
 				Alert.show("Error reading file data: " + error, "ERROR");
 			}
-			
-			importFileRef=null; // To free data storage.
+
+			importFileRef = null; // To free data storage.
 		}
-		
-		
+
+
 		private function handleInsertImportedExperiment(evt:Event):void {
 			CursorManager.removeBusyCursor();
 			dataStore.removeEventListener(DataStoreEvent.INSERT, handleInsertImportedExperiment);
 			dataStore.addEventListener(DataStoreEvent.INSERT, handleInsertKefedExperiment);
 			this.refresh(evt);
 		}
-		
+
 		/**
 		 * Miscellaneous
 		 */
@@ -725,31 +727,30 @@
 			cursorManager.removeBusyCursor();
 			Alert.show(UiUtil.getFaultURL(e) + "\n" + e.message.toString());
 		}
-		
+
 		public function errorHandler(event:Event):void {
 			Alert.show("IO Error: " + event, "Error");
 		}
-		
+
 		public function returnToDashboard(event:KefedAppEvent):void {
 			FlexGlobals.topLevelApplication.currentState = "Dashboard_State";
 		}
-		
-		private function batchUpload(): void {
-			if(FlexGlobals.topLevelApplication.eventDispatcher != null ) {
+
+		private function batchUpload():void {
+			if (FlexGlobals.topLevelApplication.eventDispatcher != null) {
 				FlexGlobals.topLevelApplication.currentState = "Batch_State";
 			}
 		}
 
 		private function updateSelectedList():void {
-	  	
-	  		var l:Array = list.selectedItems;
+
+			var l:Array = list.selectedItems;
 			FlexGlobals.topLevelApplication.selectedOntologies = l;
 
 			var s:String = FlexGlobals.topLevelApplication.getOntologyList();
 			selectedOntologiesLabel.text = s;
-	  	}
-
-    	]]>
+		}
+		]]>
     </mx:Script>
 
 	<mx:Panel title="Ontology List" width="0%" height="100%">

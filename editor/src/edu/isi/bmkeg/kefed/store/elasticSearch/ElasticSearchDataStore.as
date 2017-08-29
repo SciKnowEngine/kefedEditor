@@ -87,8 +87,9 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 			var o:Object = JSON.decode(s);
 
             var experimentList:ArrayCollection = new ArrayCollection();
-            if(o.length == 1)
-                experimentList = new ArrayCollection(Array(o[0]));
+			for(var i:int=0; i<o.length; i++) {
+                experimentList.addItem(o[i]);
+			}
 
             dispatchEvent(new DataStoreEvent(DataStoreEvent.LIST, null, experimentList));
 
@@ -141,7 +142,8 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 		 */
 		public function insertData(experiment:KefedExperiment):void {
 			experiment.updateTime();
-			insertService.url = serviceUrl + "insertData";
+            experiment.updateUID();
+            insertService.url = serviceUrl + "insertData";
 			insertService.request = JSONSerializer.serializeKefedExperiment(experiment, false);
 			insertService.send();
 		}
@@ -151,7 +153,7 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 			// but will all stores be able to handle it?
 
             var str:String = String(insertService.lastResult);
-            str = "[" + str.substring(1,str.length-1) + "]"; // Hack for parser.
+            //str = "[" + str.substring(1,str.length-1) + "]"; // Hack for parser.
             var experiment:KefedExperiment = JSONSerializer.deserializeKefedExperiment(str);
             dispatchEvent(new DataStoreEvent(DataStoreEvent.INSERT, experiment, null));
 		}		
@@ -186,7 +188,7 @@ package edu.isi.bmkeg.kefed.store.elasticSearch
 		 * 
 		 */
 		public function deleteData(uid:String):void	{
-			deleteService.url = serviceUrl + "deleteModel?uid=" + uid;
+			deleteService.url = serviceUrl + "deleteData?uid=" + uid;
 			deleteService.send();
 		}
 		

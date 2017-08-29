@@ -146,8 +146,9 @@ package edu.isi.bmkeg.kefed.elements
 		private function loadResultEventHandler(event:ResultEvent):void {
 		
 			var str:String = String(loadPersvr.lastResult);
-			
-			var model:KefedModel = JSONSerializer.deserializeKefedModel(str);
+
+            var coll:ArrayCollection = JSONSerializer.deserializeKefedModel(str)
+            var model:KefedModel = coll.getItemAt(0);
 
         	CursorManager.removeBusyCursor();
 			
@@ -172,7 +173,8 @@ package edu.isi.bmkeg.kefed.elements
 		private function copyResultEventHandler(event:ResultEvent):void {
 		
 			var str:String = String(copyPersvr.lastResult);
-			var original:KefedModel = JSONSerializer.deserializeKefedModel(str);
+			var coll:ArrayCollection = JSONSerializer.deserializeKefedModel(str)
+			var original:KefedModel = coll.getItemAt(0);
 			var model:KefedModel = original.clone();
 			model.modelName = model.modelName + " copy";
 			insertModel(model);
