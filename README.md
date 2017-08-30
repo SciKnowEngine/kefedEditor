@@ -2,29 +2,11 @@
 This was the original `BioScholar` web application, described in 
 [Russ et al. 2011](http://www.biomedcentral.com/1471-2105/12/351).
 
-_Note:_ This system was built for Java 1.6 with ant. Set JAVA_HOME to a local Java 1.6 distribution to compile and build full application by running performing the following:
+_Note:_ This system has been trimmed down from the version described in the BMC Bioinformatics paper. We have removed the Server and Reasoning components and focussed on developing this as an intermediary system, designed to operate within the `kefed.io` architecture. 
+This is now a maven project using FlexMojos to permit the code to be built easily from the command line. 
 
-*Set JAVA_HOME to 1.6*
-```
-$ /usr/libexec/java_home -v 1.6
-$ export JAVA_HOME=<output-of-above-command>
-```
-Note that you may also need to delete the `./server/bin` directory to remove old versions of the `KefedJettyServer` class if you get `Exception in thread "main" java.lang.UnsupportedClassVersionError: edu/isi/bmkeg/kefed/server/KefedJettyServer : Unsupported major.minor version 52.0` errors.
+This version of the KefedEditor will only run as a componenet part of the kefed.io system (since it requires the server-side interactions with the embedded ElasticSearch server of that system). 
 
-*Build the system*
-```
-$ cd editor
-$ ant
-$ cp dist/blazeds.war ../server/webapps
-$ cd ../server
-$ ant 
-```
+Thus, this is now legacy code and will be maintained as long as we need to use the Flex system in `kefed.io`. 
 
-*Running the system*
-
-You will need to install and run ElasticSearch to store the KEfED models. Once installed, make sure that the system has an index called `kefed`. This will be where we store all our models and data.  
-
-```
-curl -XPUT 'localhost:9200/kefed?pretty&pretty'
-curl -XGET 'localhost:9200/_cat/indices?v&pretty'
-```
+[kefed.io](https://github.com/SciKnowEngine/kefed.io) will be our desired platform going forward, which is based on Javascript components only (mxGraph and polymer). 
