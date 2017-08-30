@@ -19,3 +19,5 @@ editor/bin
 editor/build/
 editor/dist/
 *.iml
+out/
+target/

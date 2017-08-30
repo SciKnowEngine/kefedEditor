@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>edu.isi.ske</groupId>
+	<artifactId>kefedEditor</artifactId>
+	<name>KEfED Editor (Flex)</name>
+	<version>1.3.0.SNAPSHOT</version>
+	<packaging>swf</packaging>
+	<properties>
+		<flexmojos.version>4.2-beta</flexmojos.version>
+		<flex.version>4.5.1.21328</flex.version>
+		<flashplayer.version.major>10.2</flashplayer.version.major>
+		<flashplayer.version.minor>0</flashplayer.version.minor>
+		<flexunit.version>4.1-RC2</flexunit.version>
+		<sonar.language>flex</sonar.language>
+		<sonar.dynamicAnalysis>false</sonar.dynamicAnalysis>
+		<root.basedir>${project.basedir}</root.basedir>
+		<flex.flashPlayer.command>/Applications/Adobe Flash Builder
+			4.5/player/mac/10.2/Flash Player Debugger.app/Contents/MacOS/Flash
+			Player Debugger</flex.flashPlayer.command>
+	</properties>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>flex-mojos-repository2</id>
+			<url>http://repository.sonatype.org/content/groups/flexgroup</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>flexpmd.opensource.adobe</id>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<name>FlexPMD repository on opensource.adobe.com</name>
+			<url>http://opensource.adobe.com/svn/opensource/flexpmd/maven-repository/release/</url>
+		</pluginRepository>
+	</pluginRepositories>
+	<repositories>
+		<repository>
+			<id>flex</id>
+			<url>http://repository.sonatype.org/content/groups/flexgroup</url>
+			<name>Sonatype Flex Repo</name>
+		</repository>
+		<!-- ISI repositories at colo-pm2.isi.edu -->
+		<repository>
+			<id>isi.nexus.server.thirdparty</id>
+			<name>ISI Third Party Nexus Repository</name>
+			<url>http://colo-pm2.isi.edu:8081/nexus/content/repositories/thirdparty/</url>
+		</repository>
+		<repository>
+			<id>isi.nexus.server.snapshots</id>
+			<name>ISI Snapshots Nexus Repository</name>
+			<url>http://colo-pm2.isi.edu:8081/nexus/content/repositories/snapshots/</url>
+		</repository>
+		<repository>
+			<id>isi.nexus.server</id>
+			<name>ISI Snapshots Nexus Repository</name>
+			<url>http://colo-pm2.isi.edu:8081/nexus/content/repositories/public/</url>
+		</repository>
+		<!-- HUGIN -->
+		<repository>
+			<id>hugin-snapshots</id>
+			<name>Hugin ISI MRP repository SNAPSHOTS</name>
+			<url>http://hugin.isi.edu:8180/nexus/content/repositories/BMKEG-SNAPSHOT/</url>
+		</repository>
+		<repository>
+			<id>hugin-releases</id>
+			<name>Hugin ISI MRP repository RELEASES</name>
+			<url>http://hugin.isi.edu:8180/nexus/content/repositories/releases/</url>
+		</repository>
+		<repository>
+			<id>hugin-3rd-party</id>
+			<name>Hugin Third Party Nexus Repository</name>
+			<url>http://hugin.isi.edu:8180/nexus/content/repositories/thirdparty/</url>
+		</repository>
+		<repository>
+			<id>hugin-3rd-party-snapshot</id>
+			<name>Hugin Third Party Nexus Repository</name>
+			<url>http://hugin.isi.edu:8180/nexus/content/repositories/thirdpartysnapshots/</url>
+		</repository>
+	</repositories>
+	<distributionManagement>
+		<repository>
+			<id>isi.nexus.server.releases</id>
+			<name>ISI releases</name>
+			<url>http://colo-pm2.isi.edu:8081/nexus/content/repositories/releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>isi.nexus.server.snapshots</id>
+			<name>ISI MRP repository SNAPSHOTS</name>
+			<url>http://colo-pm2.isi.edu:8081/nexus/content/repositories/snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+	<build>
+		<sourceDirectory>src/main/flex</sourceDirectory>
+		<testSourceDirectory>src/test/flex</testSourceDirectory>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.sonatype.flexmojos</groupId>
+				<artifactId>flexmojos-maven-plugin</artifactId>
+				<version>${flexmojos.version}</version>
+				<extensions>true</extensions>
+				<configuration>
+					<targetPlayer>${flashplayer.version.major}.${flashplayer.version.minor}</targetPlayer>
+					<includeFileSets>
+						<fileset>
+							<directory>src/main/resources</directory>
+							<includes>
+								<include>*.*</include>
+							</includes>
+						</fileset>
+					</includeFileSets>
+					<sourceFile>KefedEditor.mxml</sourceFile>
+					<swfVersion>11</swfVersion>
+					<incremental>false</incremental>
+					<compilerWarnings>
+						<warn-no-constructor>false</warn-no-constructor>
+					</compilerWarnings>
+					<targetPlayer>${flashplayer.version.major}.${flashplayer.version.minor}</targetPlayer>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.sonatype.flexmojos</groupId>
+						<artifactId>flexmojos-threadlocaltoolkit-wrapper</artifactId>
+						<version>${flexmojos.version}</version>
+					</dependency>
+					<dependency>
+						<groupId>com.adobe.flex</groupId>
+						<artifactId>compiler</artifactId>
+						<version>${flex.version}</version>
+						<type>pom</type>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>remove-FlexUnitApplication</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>src/main/flex</directory>
+							<includes>
+								<include>FlexUnitApplication.mxml</include>
+								<include>FlexUnitCompilerApplication.mxml</include>
+							</includes>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>com.adobe.flex.framework</groupId>
+			<artifactId>playerglobal</artifactId>
+			<version>${flex.version}</version>
+			<classifier>${flashplayer.version.major}</classifier>
+			<type>swc</type>
+		</dependency>
+		<dependency>
+			<groupId>com.adobe.flex.framework</groupId>
+			<artifactId>flex-framework</artifactId>
+			<version>${flex.version}</version>
+			<type>pom</type>
+		</dependency>
+		<dependency>
+			<groupId>hamcrest-as3</groupId>
+			<artifactId>hamcrest-as3</artifactId>
+			<version>1.1.0</version>
+			<type>swc</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockolate</groupId>
+			<artifactId>mockolate</artifactId>
+			<version>0.12.4</version>
+			<type>swc</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.flexlib</groupId>
+			<artifactId>flexlib</artifactId>
+			<version>2.6-M3</version>
+			<type>swc</type>
+		</dependency>
+		<!-- 3rd party libraries that must be obtained from our maven repo -->
+		<dependency>
+			<groupId>kapit.com</groupId>
+			<version>0</version>
+			<type>swc</type>
+			<artifactId>diagrammer</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>kapit.com</groupId>
+			<version>0</version>
+			<type>swc</type>
+			<artifactId>diagrammerProxies</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>flare</groupId>
+			<version>2009-01-24</version>
+			<type>swc</type>
+			<artifactId>flare</artifactId>
+		</dependency>
+	</dependencies>
+</project>
